@@ -1,3 +1,5 @@
 export * from './errors'
 export * from './deck'
 export * from './stats'
+export * from './room/types'
+export { applyCommand, createRoom } from './room/apply'
