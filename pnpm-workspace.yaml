@@ -3,4 +3,5 @@ packages:
 allowBuilds:
   '@nestjs/core': false
   '@swc/core': true
+  argon2: true
   esbuild: true

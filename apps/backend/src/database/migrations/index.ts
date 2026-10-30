@@ -1,0 +1,2 @@
+import { Init1761800000000 } from './1761800000000-Init'
+export const MIGRATIONS = [Init1761800000000]
