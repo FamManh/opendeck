@@ -4,6 +4,7 @@ import { UsersModule } from '../users/users.module'
 import { AuthSession } from './auth-session.entity'
 import { AuthController } from './auth.controller'
 import { loginLimiterProvider } from './login-limiter'
+import { OptionalSessionGuard } from './optional-session.guard'
 import { MeController } from './me.controller'
 import { PasswordReset } from './password-reset.entity'
 import { PasswordResetController } from './password-reset.controller'
@@ -15,7 +16,7 @@ import { SessionService } from './session.service'
 @Module({
   imports: [TypeOrmModule.forFeature([AuthSession, PasswordReset]), UsersModule],
   controllers: [AuthController, MeController, PasswordResetController],
-  providers: [PasswordService, SessionService, SessionGuard, loginLimiterProvider, PasswordResetService],
-  exports: [PasswordService, SessionService, SessionGuard],
+  providers: [PasswordService, SessionService, SessionGuard, OptionalSessionGuard, loginLimiterProvider, PasswordResetService],
+  exports: [PasswordService, SessionService, SessionGuard, OptionalSessionGuard],
 })
 export class AuthModule {}
