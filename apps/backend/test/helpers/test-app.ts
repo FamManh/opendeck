@@ -8,19 +8,21 @@ import { CLOCK } from '../../src/common/clock'
 import { MAILER } from '../../src/mail/mailer'
 import { fakeClock } from '../support/fake-clock'
 import { FakeMailer } from '../support/fake-mailer'
-import { createTestDb } from '../support/test-db'
+import { createTestDb, type TestDb } from '../support/test-db'
 
 export interface TestApp {
   app: INestApplication
   ds: DataSource
   clock: ReturnType<typeof fakeClock>
   mailer: FakeMailer
-  close(): Promise<void>
+  db: TestDb
+  /** keepDb: giữ schema để dựng lại app trên cùng DB (test restart); app cuối cùng gọi close() để xoá. */
+  close(opts?: { keepDb?: boolean }): Promise<void>
 }
 
 /** Full AppModule on an isolated, migrated Postgres schema with fake clock and mailer. Call in beforeAll, close() in afterAll. */
-export async function createTestApp(): Promise<TestApp> {
-  const db = await createTestDb()
+export async function createTestApp(opts: { db?: TestDb } = {}): Promise<TestApp> {
+  const db = opts.db ?? await createTestDb()
   const originalUrl = process.env.DATABASE_URL
   process.env.DATABASE_URL = db.url
   const clock = fakeClock()
@@ -32,10 +34,10 @@ export async function createTestApp(): Promise<TestApp> {
   const app = configureApp(mod.createNestApplication())
   await app.init()
   return {
-    app, ds: app.get<DataSource>(DataSource), clock, mailer,
-    async close() {
+    app, ds: app.get<DataSource>(DataSource), clock, mailer, db,
+    async close({ keepDb = false } = {}) {
       await app.close()
-      await db.drop()
+      if (!keepDb) await db.drop()
       process.env.DATABASE_URL = originalUrl
     },
   }
