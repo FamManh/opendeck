@@ -4,7 +4,7 @@
 
 **Goal:** Ra phiên bản Planning Poker chạy được end-to-end: tài khoản, khách, phòng công khai/có mật khẩu, bỏ phiếu bí mật realtime, lật bài, thống kê, bỏ phiếu lại, chốt điểm, tổng kết + CSV. Plan này chưa có Jira và chưa có hiệu ứng nặng.
 
-**Architecture:** Domain thuần nằm trong `packages/core`: reducer `applyCommand` và `computeRoundStats`, không I/O, dùng chung cho server và client. Server Fastify + Socket.IO giữ `RoomState` trong bộ nhớ (nguồn sự thật duy nhất), ghi Postgres qua Prisma, và gửi cho mỗi socket bản đã che phiếu (`toPublicState`). Web React chỉ render state đã nhận và gửi command.
+**Architecture:** Domain thuần nằm trong `apps/backend/src/domain` (frontend import trực tiếp qua `apps/frontend/src/domain.ts`): reducer `applyCommand` và `computeRoundStats`, không I/O, dùng chung cho server và client. Server Fastify + Socket.IO giữ `RoomState` trong bộ nhớ (nguồn sự thật duy nhất), ghi Postgres qua Prisma, và gửi cho mỗi socket bản đã che phiếu (`toPublicState`). Web React chỉ render state đã nhận và gửi command.
 
 **Tech Stack:** TypeScript 5, pnpm workspaces, Node 20, Fastify 4, Socket.IO 4, Prisma 5 + PostgreSQL 16, argon2, nanoid, React 18 + Vite 5 + Zustand + react-router 6, i18next, Vitest, Playwright.
 
@@ -18,9 +18,9 @@
 - Giá trị phiếu **không bao giờ** rời server trước khi lật, kể cả trong snapshot lúc join hoặc reconnect (§6).
 - Host phải có tài khoản. Host offline **> 60 giây** thì chuyển quyền host (§6, roadmap §2.5).
 - Phòng mặc định công khai; `requireApproval` mặc định **false** (§2).
-- Bộ bài: Fibonacci `1,2,3,5,8,13,21`; T-shirt `XS,S,M,L,XL`; giờ `0.5,1,2,4,8,16,24`; ngày `0.5,1,2,3,5,8`. Lá đặc biệt luôn có trong mọi bộ (§3).
+- Bộ bài: Fibonacci `1,2,3,5,8,13,21`; T-shirt `XS,S,M,L,XL`; giờ `0.5,1,2,4,8,16,24`; ngày `0.5,1,2,3,5,8`. 7 lá đặc biệt; host bật/tắt từng lá, mặc định bật đủ 7 (quyết định 2026-10-30, theo design màn 03).
 - Discussion trigger: `spreadSteps >= 2` (§3).
-- Mọi chuỗi UI đi qua i18next, ngôn ngữ mặc định `vi`.
+- Mọi chuỗi UI đi qua i18next, hỗ trợ `vi` + `en` (mặc định `vi`, lưu lựa chọn ở localStorage `opendeck.lang`). Domain không chứa chuỗi hiển thị: lá đặc biệt dịch qua `cards.special.<id>`, bộ bài preset qua `scales.<id>`.
 - Mô hình dữ liệu theo §8: Session/Item/Criterion/Scale/Vote(round, anonymous)/Outcome. MVP dùng 1 criterion nhưng schema hỗ trợ nhiều criterion.
 - Không có thống kê theo cá nhân (§7).
 
@@ -37,9 +37,10 @@
 ## File Structure
 
 ```
-package.json, pnpm-workspace.yaml, tsconfig.base.json, docker-compose.yml (postgres)
-packages/core/src/
-  deck.ts        — Card, Scale, preset, lá đặc biệt, bộ bài tuỳ chỉnh
+package.json, pnpm-workspace.yaml (chỉ apps/*), tsconfig.base.json, docker-compose.yml (postgres)
+apps/backend/src/domain/   — domain thuần, không I/O; frontend import qua apps/frontend/src/domain.ts
+  errors.ts      — DomainError
+  deck.ts        — Card, Scale, preset, lá đặc biệt (bật/tắt), bộ bài tuỳ chỉnh
   stats.ts       — computeRoundStats
   room/types.ts  — RoomState, Participant, Command, DomainEvent, DomainError
   room/participants.ts — join/leave/reconnect/role/host transfer
@@ -47,13 +48,14 @@ packages/core/src/
   room/apply.ts  — applyCommand (dispatcher) + tick
   redact.ts      — toPublicState
   summary.ts     — buildSummary, toCsv
-apps/server/src/
+apps/backend/src/
   prisma/schema.prisma
   auth/  (routes.ts, password.ts, rateLimit.ts, session.ts)
   rooms/ (routes.ts, roomStore.ts, persistence.ts)
   realtime/gateway.ts
-apps/web/src/
-  styles/tokens.css, i18n/vi.json
+apps/frontend/src/
+  domain.ts (re-export ../../backend/src/domain)
+  styles/tokens.css, i18n/{index.ts,vi.json,en.json}
   api/client.ts, realtime/socket.ts, store/roomStore.ts
   pages/ (Login, Register, Forgot, Reset, Home, Room, Summary)
   room/ (Table.tsx, Seat.tsx, CardFan.tsx, TaskPanel.tsx, ResultsPanel.tsx, JoinDialog.tsx)
@@ -62,60 +64,33 @@ e2e/voting.spec.ts, e2e/load.ts
 
 ---
 
-### Task 1: Scaffold monorepo + `deck.ts`
+### Task 1: Scaffold monorepo + `deck.ts` — ✅ ĐÃ XONG (2026-10-30)
 
-**Files:**
-- Create: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `packages/core/{package.json,tsconfig.json,vitest.config.ts}`, `packages/core/src/deck.ts`
-- Test: `packages/core/src/deck.test.ts`
+Chi tiết + log thực hiện: `2026-10-30-01-task1-scaffold-deck.md`.
 
-**Interfaces:**
-- Produces:
+**Files đã tạo:** root `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `.gitignore`; `apps/backend/{package.json,tsconfig.json,vitest.config.ts}`, `apps/backend/src/domain/{errors,deck,index}.ts` + `deck.test.ts`; `apps/frontend` (Vite + React 18 + i18next vi/en) + `src/i18n/resources.test.ts`.
+
+**Interfaces (các task sau dùng):**
   ```ts
-  type SpecialId = 'coffee'|'question'|'bug'|'bomb'|'puzzle'|'infinity'|'shrug'  // trùng value của CardV3 trong design
+  class DomainError extends Error { readonly code: string }                    // domain/errors.ts
+  type SpecialId = 'coffee'|'question'|'bug'|'bomb'|'puzzle'|'infinity'|'shrug'  // trùng value CardV3 trong design
+  const SPECIAL_IDS: readonly SpecialId[]                                       // thứ tự cố định ở trên
   interface Card { id: string; label: string; numeric: number|null; special: boolean }
   interface Scale { id: string; name: string; kind: 'numeric'|'ordinal'; cards: Card[] } // cards: chỉ lá thường, đúng thứ tự thang
-  const PRESET_SCALES: Record<'fibonacci'|'tshirt'|'hours'|'days', Scale>
-  const SPECIAL_CARDS: Card[]            // 7 lá, theo thứ tự SpecialId ở trên; label: Cần nghỉ, Chưa rõ, Mùi bug, Rủi ro cao, Phụ thuộc, Quá lớn, Không biết
-  function deckOf(scale: Scale): Card[]  // cards + SPECIAL_CARDS
-  function createCustomScale(name: string, labels: string[]): Scale  // throws DomainError
+  const PRESET_SCALES: Record<'fibonacci'|'tshirt'|'hours'|'days', Scale>       // name chỉ là fallback; UI dịch qua `scales.<id>`
+  const SPECIAL_CARDS: Card[]            // 7 lá; label = id (UI dịch qua `cards.special.<id>`)
+  function isSpecialId(id: string): id is SpecialId
+  function deckOf(scale: Scale, enabledSpecials?: readonly SpecialId[]): Card[]  // cards + lá đặc biệt đang bật (mặc định đủ 7), throws UNKNOWN_SPECIAL
+  function createCustomScale(name: string, labels: string[]): Scale             // throws SCALE_TOO_SMALL | SCALE_EMPTY_LABEL | SCALE_RESERVED_LABEL | SCALE_DUPLICATE
   ```
 
-- [ ] **Step 1: Khởi tạo workspace.** Root scripts: `test` = `pnpm -r test`, `typecheck` = `pnpm -r exec tsc --noEmit`. `git init` nếu chưa có repo.
-- [ ] **Step 2: Viết test fail**
-
-```ts
-test('fibonacci preset', () => {
-  expect(PRESET_SCALES.fibonacci.cards.map(c => c.label)).toEqual(['1','2','3','5','8','13','21'])
-  expect(PRESET_SCALES.fibonacci.kind).toBe('numeric')
-})
-test('tshirt is ordinal with null numeric', () => {
-  expect(PRESET_SCALES.tshirt.cards.map(c => c.label)).toEqual(['XS','S','M','L','XL'])
-  expect(PRESET_SCALES.tshirt.cards.every(c => c.numeric === null)).toBe(true)
-})
-test('every deck ends with the 7 special cards', () => {
-  for (const s of Object.values(PRESET_SCALES))
-    expect(deckOf(s).slice(-7).map(c => c.id)).toEqual(['coffee','question','bug','bomb','puzzle','infinity','shrug'])
-})
-test('custom scale: all-numeric labels → numeric kind', () => {
-  expect(createCustomScale('Team', ['1','2','4']).kind).toBe('numeric')
-  expect(createCustomScale('Team', ['low','high']).kind).toBe('ordinal')
-})
-test('custom scale rejects <2 cards and duplicates', () => {
-  expect(() => createCustomScale('x', ['1'])).toThrow('SCALE_TOO_SMALL')
-  expect(() => createCustomScale('x', ['1','1'])).toThrow('SCALE_DUPLICATE')
-})
-```
-
-- [ ] **Step 3: Chạy** `pnpm --filter core test`. Kỳ vọng: FAIL (module not found).
-- [ ] **Step 4: Implement `deck.ts`.** Card id của lá thường là `label`. `DomainError extends Error { code }` đặt tạm ở `room/types.ts` và export từ đây.
-- [ ] **Step 5: Chạy lại test.** Kỳ vọng: PASS.
-- [ ] **Step 6: Commit** `feat(core): scales, special cards, custom deck`
+**Ghi chú cho Task 3:** room settings có `enabledSpecials: SpecialId[]` (mặc định `SPECIAL_IDS`); vote lá không có trong `deckOf(scale, enabledSpecials)` → `CARD_NOT_IN_DECK`. `DomainError` import từ `domain/errors.ts`.
 
 ---
 
 ### Task 2: `computeRoundStats`
 
-**Files:** Create `packages/core/src/stats.ts` · Test `packages/core/src/stats.test.ts`
+**Files:** Create `apps/backend/src/domain/stats.ts` · Test `apps/backend/src/domain/stats.test.ts`
 
 **Interfaces:**
 - Consumes: `Scale`, `Card`, `SPECIAL_CARDS` (Task 1)
@@ -170,13 +145,13 @@ test('unknown card id throws UNKNOWN_CARD', () => {
 - [ ] **Step 2: Chạy test.** Kỳ vọng: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 5: Commit** `feat(core): round statistics`
+- [ ] **Step 5: Commit** `feat(backend/domain): round statistics`
 
 ---
 
 ### Task 3: Room reducer (`room/*`)
 
-**Files:** Create `packages/core/src/room/{types,participants,rounds,apply}.ts` · Test `packages/core/src/room/{participants,rounds}.test.ts`
+**Files:** Create `apps/backend/src/domain/room/{types,participants,rounds,apply}.ts` · Test `apps/backend/src/domain/room/{participants,rounds}.test.ts`
 
 **Interfaces:**
 - Consumes: `Scale`, `deckOf`, `computeRoundStats`
@@ -236,13 +211,13 @@ test('reason >200 chars throws REASON_TOO_LONG', ...)
 - [ ] **Step 3: Chạy test.** Kỳ vọng: FAIL.
 - [ ] **Step 4: Implement.** Mỗi handler là hàm thuần trả về state mới (không mutate state cũ). `tick` lo cả auto-reveal theo timer lẫn chuyển host khi host offline quá 60 giây.
 - [ ] **Step 5: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 6: Commit** `feat(core): room state machine`
+- [ ] **Step 6: Commit** `feat(backend/domain): room state machine`
 
 ---
 
 ### Task 4: `toPublicState` + summary/CSV
 
-**Files:** Create `packages/core/src/{redact,summary}.ts` · Test `packages/core/src/{redact,summary}.test.ts`
+**Files:** Create `apps/backend/src/domain/{redact,summary}.ts` · Test `apps/backend/src/domain/{redact,summary}.test.ts`
 
 **Interfaces:**
 - Produces:
@@ -275,15 +250,15 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 - [ ] **Step 2: Chạy test.** Kỳ vọng: FAIL.
 - [ ] **Step 3: Implement.** `notes` = các dòng lý do của mọi vòng nối bằng `\n` (§3 "gom lại thành ghi chú"), **không kèm tên người** (§7).
 - [ ] **Step 4: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 5: Commit** `feat(core): vote redaction, summary, csv`
+- [ ] **Step 5: Commit** `feat(backend/domain): vote redaction, summary, csv`
 
 ---
 
 ### Task 5: Server — DB schema + auth
 
 **Files:**
-- Create: `docker-compose.yml`, `apps/server/{package.json,tsconfig.json}`, `apps/server/prisma/schema.prisma`, `apps/server/src/{app.ts,main.ts}`, `apps/server/src/auth/{routes,password,rateLimit,session}.ts`
-- Test: `apps/server/test/auth.test.ts` (dùng `app.inject` + Postgres test DB lấy từ `DATABASE_URL_TEST`)
+- Create: `docker-compose.yml`, `apps/backend/{package.json,tsconfig.json}`, `apps/backend/prisma/schema.prisma`, `apps/backend/src/{app.ts,main.ts}`, `apps/backend/src/auth/{routes,password,rateLimit,session}.ts`
+- Test: `apps/backend/test/auth.test.ts` (dùng `app.inject` + Postgres test DB lấy từ `DATABASE_URL_TEST`)
 
 **Interfaces:**
 - Prisma models (theo §8): `User{id,email unique,passwordHash,displayName,avatar,emailVerifiedAt?}`, `Room{id,slug unique,ownerId,name,passwordHash?,requireApproval=false,locked=false,templateId='estimate',config Json,liveState Json?,createdAt}`, `Item{id,roomId,source,externalRef?,title,description,order,status}`, `Criterion{id,roomId,name,scale Json}`, `Vote{id,itemId,criterionId,participantKey,round,cardId,anonymous=false,createdAt}`, `Outcome{id,itemId,value,note,decidedBy,decidedAt}`, `PasswordReset{tokenHash,userId,expiresAt,usedAt?}`, `AuthSession{id,userId,expiresAt}`.
@@ -301,11 +276,11 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 ### Task 6: Server — phòng, khách, realtime gateway
 
 **Files:**
-- Create: `apps/server/src/rooms/{routes,roomStore,persistence}.ts`, `apps/server/src/realtime/gateway.ts`, `apps/server/src/guests.ts`
-- Test: `apps/server/test/rooms.test.ts`, `apps/server/test/realtime.test.ts` (dùng `socket.io-client` thật, server listen trên port 0)
+- Create: `apps/backend/src/rooms/{routes,roomStore,persistence}.ts`, `apps/backend/src/realtime/gateway.ts`, `apps/backend/src/guests.ts`
+- Test: `apps/backend/test/rooms.test.ts`, `apps/backend/test/realtime.test.ts` (dùng `socket.io-client` thật, server listen trên port 0)
 
 **Interfaces:**
-- Consumes: `applyCommand`, `createRoom`, `toPublicState`, `PRESET_SCALES` (core); `buildApp` (Task 5).
+- Consumes: `applyCommand`, `createRoom`, `toPublicState`, `PRESET_SCALES` (backend/domain); `buildApp` (Task 5).
 - HTTP: `POST /api/guests {name,avatar}` → cookie `gid` (đã ký, 128-bit random, hạn 1 năm) · `PATCH /api/guests/me` · `POST /api/rooms {name, scaleId|customScale, password?, requireApproval?}` (bắt buộc đăng nhập) → `{slug}` · `GET /api/rooms/:slug` → `{name, hasPassword, requireApproval}` · `POST /api/rooms/:slug/join {password?}` → 204 + cookie `rj_<slug>` (vé vào phòng); sai mật khẩu → 403; quá giới hạn → 429 · `PATCH /api/rooms/:slug` (host đổi mật khẩu/khóa/bật duyệt) · `GET /api/rooms/:slug/summary.csv`.
 - Socket.IO namespace `/room`, handshake `{slug}`; xác thực bằng cookie `sid` hoặc `gid` + `rj_<slug>`. Participant id = `u:<userId>` hoặc `g:<guestId>`, nên 2 tab là cùng 1 người.
   - client→server: `cmd` (Command không có `pid`; server tự gắn), ack `{ok:true}|{ok:false,code}`
@@ -332,8 +307,8 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 ### Task 7: Web — nhập design, shell, auth, vào phòng
 
 **Files:**
-- Create: `apps/web/*` (Vite), `apps/web/src/styles/tokens.css`, `apps/web/src/i18n/vi.json`, `apps/web/src/api/client.ts`, `apps/web/src/pages/{Login,Register,Forgot,Reset,Home}.tsx`, `apps/web/src/room/JoinDialog.tsx`, `docs/design/Planning Poker Screens.dc.html`, `docs/design/support.js`
-- Test: `apps/web/src/room/JoinDialog.test.tsx` (Vitest + Testing Library)
+- Create: `apps/frontend/*` (Vite), `apps/frontend/src/styles/tokens.css`, `apps/frontend/src/i18n/{vi,en}.json`, `apps/frontend/src/api/client.ts`, `apps/frontend/src/pages/{Login,Register,Forgot,Reset,Home}.tsx`, `apps/frontend/src/room/JoinDialog.tsx`, `docs/design/Planning Poker Screens.dc.html`, `docs/design/support.js`
+- Test: `apps/frontend/src/room/JoinDialog.test.tsx` (Vitest + Testing Library)
 
 **Interfaces:**
 - Consumes: HTTP API của Task 5 và 6.
@@ -341,7 +316,7 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 
 - [x] **Step 1: Đưa file design vào repo.** Đã đồng bộ ngày 2026-10-30 vào `docs/design/` (xem `docs/design/README.md` để biết màn nào thuộc task nào). Mở file `.dc.html` trong trình duyệt (cùng thư mục với `support.js`) để xem.
 - [ ] **Step 2: Rút design token** từ `RoomV3.dc.html` (biến `--soft`, `--accent`, `--orange`… trong `rootStyle`, cho cả light và dark) sang `tokens.css`, dark mode bằng `[data-theme=dark]` + `prefers-color-scheme`. Bộ màu chuẩn (style 3a): Canvas `#FFFFFF`, Soft `#F3F3F3`, Field `#ECECEC`, Hairline `#E0E0E0`, Ink `#141414`, Muted `#707070`, Nỉ bàn `#2F4B7C`, Hành động `#FFB627`, Con dấu `#F26A2E`. Font Hanken Grotesk: tiêu đề 650, nội dung 450, phụ đề 300. Nút, chip, toggle là hình viên thuốc; khối chứa bo 24px; không dùng bóng đổ. Màu vàng chỉ dùng cho hành động chính và lá đang chọn.
-- [ ] **Step 2b: Port component `Mascot` (8 loài × 5 trạng thái) và `CardV3` (lá số + 7 lá đặc biệt, mặt úp, selected, dim, compact)** sang `apps/web/src/ui/{Mascot,Card}.tsx`, giữ nguyên SVG và màu. Test: render đủ mọi tổ hợp loài × trạng thái mà không lỗi; `<Card value="bug" />` hiện nhãn "Mùi bug"; `faceUp={false}` không có giá trị trong DOM.
+- [ ] **Step 2b: Port component `Mascot` (8 loài × 5 trạng thái) và `CardV3` (lá số + 7 lá đặc biệt, mặt úp, selected, dim, compact)** sang `apps/frontend/src/ui/{Mascot,Card}.tsx`, giữ nguyên SVG và màu. Test: render đủ mọi tổ hợp loài × trạng thái mà không lỗi; `<Card value="bug" />` hiện nhãn "Mùi bug"; `faceUp={false}` không có giá trị trong DOM.
 - [ ] **Step 3: Viết test fail — JoinDialog:** có `pp.guest` trong localStorage → gọi thẳng `POST /api/guests`, không hiện dialog · không có → hiện dialog nhập tên + chọn avatar, nút "Vào phòng" bị disable khi tên rỗng hoặc dài quá 30 ký tự · phòng có mật khẩu → hiện ô mật khẩu; lỗi 403 hiện thông báo; lỗi 429 hiện thông báo "thử lại sau".
 - [ ] **Step 4: Chạy** `pnpm --filter web test`. Kỳ vọng: FAIL.
 - [ ] **Step 5: Implement** các page auth và Home (danh sách phòng của host, tạo phòng: tên, bộ bài, mật khẩu, duyệt) theo design.
@@ -353,11 +328,11 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 ### Task 8: Web — màn phòng chơi
 
 **Files:**
-- Create: `apps/web/src/realtime/socket.ts`, `apps/web/src/store/roomStore.ts`, `apps/web/src/pages/Room.tsx`, `apps/web/src/room/{Table,Seat,CardFan,TaskPanel,ResultsPanel}.tsx`
-- Test: `apps/web/src/room/{CardFan,ResultsPanel,Seat}.test.tsx`
+- Create: `apps/frontend/src/realtime/socket.ts`, `apps/frontend/src/store/roomStore.ts`, `apps/frontend/src/pages/Room.tsx`, `apps/frontend/src/room/{Table,Seat,CardFan,TaskPanel,ResultsPanel}.tsx`
+- Test: `apps/frontend/src/room/{CardFan,ResultsPanel,Seat}.test.tsx`
 
 **Interfaces:**
-- Consumes: `PublicRoomState`, `Command`, `RoundStats`, `deckOf` (core); socket protocol (Task 6).
+- Consumes: `PublicRoomState`, `Command`, `RoundStats`, `deckOf` (backend/domain); socket protocol (Task 6).
 - Produces: `useRoom(): { state: PublicRoomState|null; me: Participant|null; send(cmd): Promise<void>; connection: 'connecting'|'online'|'reconnecting' }`
 
 Bố cục theo §5 và file design: bàn chơi ở giữa (task hiện tại, AC thu gọn được), ghế quanh bàn, quạt bài ở dưới, panel phải (danh sách task, tiến độ `x/y`, ghi chú). Dưới 768px: bàn chơi thành danh sách dọc, panel phải thành tab. Hiệu ứng ở plan này chỉ là CSS transition `transform`/`opacity` ≤ 0,3s; hiệu ứng đầy đủ để Plan 2.
@@ -377,8 +352,8 @@ Bố cục theo §5 và file design: bàn chơi ở giữa (task hiện tại, A
 ### Task 9: Web — quản lý task, tổng kết, E2E + tải
 
 **Files:**
-- Create: `apps/web/src/room/AddItemsDialog.tsx`, `apps/web/src/pages/Summary.tsx`, `e2e/voting.spec.ts`, `e2e/load.ts`, `playwright.config.ts`
-- Test: `apps/web/src/room/AddItemsDialog.test.tsx`, các file e2e
+- Create: `apps/frontend/src/room/AddItemsDialog.tsx`, `apps/frontend/src/pages/Summary.tsx`, `e2e/voting.spec.ts`, `e2e/load.ts`, `playwright.config.ts`
+- Test: `apps/frontend/src/room/AddItemsDialog.test.tsx`, các file e2e
 
 **Interfaces:**
 - Consumes: `addItems` command, `buildSummary`, `GET /api/rooms/:slug/summary.csv`.

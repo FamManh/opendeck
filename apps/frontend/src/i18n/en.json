@@ -1,0 +1,15 @@
+{
+  "app": { "title": "OpenDeck — Planning Poker", "language": "Language" },
+  "scales": { "fibonacci": "Fibonacci", "tshirt": "T-shirt", "hours": "Hours", "days": "Days" },
+  "cards": {
+    "special": {
+      "coffee": "Need a break",
+      "question": "Unclear",
+      "bug": "Smells buggy",
+      "bomb": "High risk",
+      "puzzle": "Dependency",
+      "infinity": "Too big",
+      "shrug": "No idea"
+    }
+  }
+}

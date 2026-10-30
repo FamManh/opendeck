@@ -20,7 +20,7 @@ File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1). Plan 2 sẽ v
 
 ## 2. Mâu thuẫn / chỗ hở trong spec (cần chốt)
 
-1. **Lá bài đặc biệt:** §3 liệt kê 6 lá, §5 thêm "con bọ — mùi bug". → **Design đã giải quyết:** dùng 7 lá `coffee, question, bug, bomb, puzzle, infinity, shrug`. Còn một điểm mới cần chốt: màn 03 (Tạo phòng) cho host bật/tắt từng lá đặc biệt, trong khi §3 nói lá đặc biệt "luôn có trong mọi bộ". Plan 1 tạm theo spec (luôn có đủ 7 lá) cho đến khi chốt.
+1. **Lá bài đặc biệt:** §3 liệt kê 6 lá, §5 thêm "con bọ — mùi bug". → **Design đã giải quyết:** dùng 7 lá `coffee, question, bug, bomb, puzzle, infinity, shrug`. Còn một điểm mới cần chốt: màn 03 (Tạo phòng) cho host bật/tắt từng lá đặc biệt, trong khi §3 nói lá đặc biệt "luôn có trong mọi bộ". **Đã chốt 2026-10-30:** theo design — host bật/tắt từng lá, mặc định bật đủ 7.
 2. **Bộ bài giờ/ngày** chưa có giá trị. → Đề xuất: giờ `0.5,1,2,4,8,16,24`, ngày `0.5,1,2,3,5,8`.
 3. **T-shirt** "XS–XL" → `XS,S,M,L,XL`.
 4. **"Chênh lệch 2 bậc"** → tính bằng hiệu chỉ số trên thang (index), không tính theo giá trị; lá đặc biệt không tính.
@@ -32,11 +32,11 @@ File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1). Plan 2 sẽ v
 ## 3. Câu hỏi mở ảnh hưởng tới plan (§10)
 
 - Jira Cloud hay Data Center → chỉ cần trả lời khi bắt đầu Plan 3 (đang hoãn).
-- Ngôn ngữ UI → Plan 1 dùng i18n key ngay từ đầu (vi mặc định), nên thêm en sau rẻ.
+- Ngôn ngữ UI → **Đã chốt 2026-10-30:** hỗ trợ `vi` + `en` ngay từ Task 1 (mặc định `vi`). Domain không chứa chuỗi hiển thị.
 - Hạ tầng / dữ liệu ở VN → chỉ ảnh hưởng deploy, không ảnh hưởng code Plan 1.
 - Có cần xác minh email không → Plan 1 **không** làm (YAGNI), schema có sẵn cột `emailVerifiedAt`.
 
 ## 4. Stack chọn (spec không quy định)
 
-TypeScript monorepo pnpm · `apps/web`: React 18 + Vite + Zustand · `apps/server`: Fastify + Socket.IO · PostgreSQL + Prisma · `packages/core`: domain thuần (không I/O) dùng chung client/server · Vitest + Playwright.
-Lý do: logic phòng/bỏ phiếu nằm ở `core` thuần nên test nhanh. Server là nguồn sự thật duy nhất (§6) và chỉ gửi sự kiện nhỏ.
+TypeScript monorepo pnpm, **chỉ 2 app, không có `packages/`** (quyết định 2026-10-30) · `apps/frontend`: React 18 + Vite + Zustand + i18next · `apps/backend`: Fastify + Socket.IO · PostgreSQL + Prisma · domain thuần (không I/O) nằm ở `apps/backend/src/domain`, frontend import trực tiếp qua `apps/frontend/src/domain.ts` · Vitest + Playwright.
+Lý do: logic phòng/bỏ phiếu nằm ở domain thuần nên test nhanh. Server là nguồn sự thật duy nhất (§6) và chỉ gửi sự kiện nhỏ.

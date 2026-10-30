@@ -1,0 +1,15 @@
+{
+  "app": { "title": "OpenDeck — Planning Poker", "language": "Ngôn ngữ" },
+  "scales": { "fibonacci": "Fibonacci", "tshirt": "Áo thun (T-shirt)", "hours": "Giờ", "days": "Ngày" },
+  "cards": {
+    "special": {
+      "coffee": "Cần nghỉ",
+      "question": "Chưa rõ",
+      "bug": "Mùi bug",
+      "bomb": "Rủi ro cao",
+      "puzzle": "Phụ thuộc",
+      "infinity": "Quá lớn",
+      "shrug": "Không biết"
+    }
+  }
+}
