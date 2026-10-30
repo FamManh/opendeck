@@ -252,5 +252,43 @@
     "customValue": "Giá trị khác",
     "revote": "Bỏ phiếu lại",
     "finalize": "Chốt điểm"
+  },
+  "addItems": {
+    "title": "Thêm task",
+    "tabManual": "Gõ tay",
+    "tabPaste": "Dán nhiều dòng",
+    "tabCsv": "Import CSV",
+    "titleLabel": "Tiêu đề",
+    "descLabel": "Mô tả",
+    "keyLabel": "Mã (tuỳ chọn)",
+    "keyPlaceholder": "PAY-142",
+    "pasteLabel": "Mỗi dòng một task",
+    "pasteHint": "Dùng \"tiêu đề | mô tả\". Dòng bắt đầu bằng mã như PAY-142 sẽ lấy mã đó làm khoá.",
+    "csvHint": "File CSV có dòng tiêu đề: title, description, key (tối đa 500 dòng).",
+    "csvPick": "Chọn file CSV",
+    "count": "{{count}} task sẽ được thêm",
+    "submit": "Thêm task",
+    "errTooMany": "File có quá 500 dòng.",
+    "errCsv": "Không đọc được file CSV (thiếu cột title)."
+  },
+  "summary": {
+    "badge": "Kết thúc buổi",
+    "heroDone": "Xong {{done}} task.",
+    "heroPartial": "Xong {{done}}/{{total}} task.",
+    "tasks": "task đã chốt",
+    "rounds": "vòng bỏ phiếu",
+    "people": "người tham gia",
+    "avgRounds": "vòng trung bình / task",
+    "special": "Lá đặc biệt dùng nhiều nhất",
+    "specialCount": "{{name}} · {{count}} lần",
+    "noSpecial": "Chưa ai dùng lá đặc biệt",
+    "saveTitle": "Lưu kết quả",
+    "exportCsv": "Xuất CSV",
+    "back": "Về phòng",
+    "results": "Kết quả từng task",
+    "colTask": "Task",
+    "colFinal": "Điểm chốt",
+    "colRounds": "Vòng",
+    "notFinal": "—"
   }
 }

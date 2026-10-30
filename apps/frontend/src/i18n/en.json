@@ -252,5 +252,43 @@
     "customValue": "Other value",
     "revote": "Revote",
     "finalize": "Lock score"
+  },
+  "addItems": {
+    "title": "Add tasks",
+    "tabManual": "Type",
+    "tabPaste": "Paste lines",
+    "tabCsv": "Import CSV",
+    "titleLabel": "Title",
+    "descLabel": "Description",
+    "keyLabel": "Key (optional)",
+    "keyPlaceholder": "PAY-142",
+    "pasteLabel": "One task per line",
+    "pasteHint": "Use \"title | description\". A line starting with a key like PAY-142 uses it as the key.",
+    "csvHint": "CSV with a header row: title, description, key (max 500 rows).",
+    "csvPick": "Choose CSV file",
+    "count": "{{count}} tasks will be added",
+    "submit": "Add tasks",
+    "errTooMany": "The file has more than 500 rows.",
+    "errCsv": "Could not read the CSV (missing title column)."
+  },
+  "summary": {
+    "badge": "Session over",
+    "heroDone": "Done with {{done}} tasks.",
+    "heroPartial": "Done {{done}}/{{total}} tasks.",
+    "tasks": "tasks finalized",
+    "rounds": "voting rounds",
+    "people": "participants",
+    "avgRounds": "avg rounds / task",
+    "special": "Most used special card",
+    "specialCount": "{{name}} · {{count}} times",
+    "noSpecial": "Nobody used a special card",
+    "saveTitle": "Save results",
+    "exportCsv": "Export CSV",
+    "back": "Back to room",
+    "results": "Results by task",
+    "colTask": "Task",
+    "colFinal": "Final",
+    "colRounds": "Rounds",
+    "notFinal": "—"
   }
 }

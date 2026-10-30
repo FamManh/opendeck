@@ -17,6 +17,7 @@ import { RoomTabs } from '@/room/RoomTabs'
 import { TopBar } from '@/room/TopBar'
 import { PendingBar } from '@/room/PendingBar'
 import { ReconnectBanner } from '@/room/ReconnectBanner'
+import { AddItemsDialog } from '@/room/AddItemsDialog'
 
 type Load = { state: 'loading' } | { state: 'missing' } | { state: 'error' } | { state: 'ready'; room: RoomPreview }
 
@@ -56,6 +57,7 @@ function RoomView({ slug, name }: { slug: string; name: string }) {
   const lastEvents = useRoomStore(s => s.lastEvents)
   const connError = useRoomStore(s => s.connError)
   const [sheet, setSheet] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
 
   if (connection === 'kicked') return <Notice title={t('room.kicked')} body={t('room.kickedNote')} />
   if (connError) return <Notice title={t('room.connError')} body={t(`errors.${connError}`, { defaultValue: t('errors.generic') })} />
@@ -76,12 +78,13 @@ function RoomView({ slug, name }: { slug: string; name: string }) {
     return { low: pick(stats.min?.id), high: pick(stats.max?.id) }
   })()
   const ignore = () => {}
-  const openAdd = isHost ? () => { /* Task 9: open AddItemsDialog */ } : undefined
+  const openAdd = isHost ? () => setAddOpen(true) : undefined
   const tabs = <RoomTabs state={state} pid={pid} isHost={isHost} canVote={!!canVote} send={send} onAdd={openAdd} />
 
   return (
     <div className="flex h-svh flex-col bg-background">
       <ReconnectBanner />
+      {isHost && <AddItemsDialog open={addOpen} onOpenChange={setAddOpen} onSubmit={items => send({ type: 'addItems', items })} />}
       <TopBar name={name} state={state} me={me} isHost={isHost} send={send} />
       {isHost && <PendingBar pending={state.pending} send={send} />}
       <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_340px]">

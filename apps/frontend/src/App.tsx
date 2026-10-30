@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/Login'
 import { RegisterPage } from '@/pages/Register'
 import { ResetPage } from '@/pages/Reset'
 import { RoomPage } from '@/pages/Room'
+import { SummaryPage } from '@/pages/Summary'
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
         <Route path="/reset" element={<ResetPage />} />
         <Route path="/rooms/new" element={<CreateRoomPage />} />
         <Route path="/r/:slug" element={<RoomPage />} />
+        <Route path="/r/:slug/summary" element={<SummaryPage />} />
         <Route path="*" element={<HomePage />} />
       </Routes>
     </BrowserRouter>
