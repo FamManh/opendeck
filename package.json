@@ -10,6 +10,13 @@
     "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d --wait db",
     "dev:backend": "pnpm --filter @opendeck/backend dev",
-    "dev:frontend": "pnpm --filter @opendeck/frontend dev"
+    "dev:frontend": "pnpm --filter @opendeck/frontend dev",
+    "e2e": "pnpm db:up && playwright test",
+    "load": "pnpm db:up && pnpm --filter @opendeck/backend build && tsx e2e/load.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "socket.io-client": "^4.8.4",
+    "tsx": "^4.23.15"
   }
 }

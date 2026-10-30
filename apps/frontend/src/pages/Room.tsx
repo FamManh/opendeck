@@ -89,7 +89,7 @@ function RoomView({ slug, name }: { slug: string; name: string }) {
       {isHost && <PendingBar pending={state.pending} send={send} />}
       <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_340px]">
         <section className="flex min-h-0 flex-col gap-3 overflow-y-auto py-3">
-          <div className="min-h-0 flex-1"><Table state={state} pid={pid} isHost={isHost} onStart={itemId => void send({ type: 'startRound', itemId }).catch(ignore)} onAdd={openAdd} onSummary={() => navigate(`/r/${slug}/summary`)} /></div>
+          <div className="min-h-[440px] flex-1"><Table state={state} pid={pid} isHost={isHost} onStart={itemId => void send({ type: 'startRound', itemId }).catch(ignore)} onAdd={openAdd} onSummary={() => navigate(`/r/${slug}/summary`)} /></div>
           {cur?.status === 'voting' && canVote && (
             <CardFan scale={state.scale} enabledSpecials={state.enabledSpecials} myVote={cur.myVote} send={cmd => send(cmd).catch(ignore)} />
           )}
