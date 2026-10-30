@@ -2,20 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "types": [
-      "vite/client",
-      "vitest/globals"
-    ],
-    "resolveJsonModule": true
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "vitest/globals", "node"],
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": [
-    "src",
-    "vite.config.ts",
-    "vitest.config.ts"
-  ]
+  "include": ["src", "vite.config.ts", "vitest.config.ts"]
 }
