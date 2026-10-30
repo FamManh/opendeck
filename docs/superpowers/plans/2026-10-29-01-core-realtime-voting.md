@@ -23,6 +23,8 @@
 - Mọi chuỗi UI đi qua i18next, hỗ trợ `vi` + `en` (mặc định `vi`, lưu lựa chọn ở localStorage `opendeck.lang`). Domain không chứa chuỗi hiển thị: lá đặc biệt dịch qua `cards.special.<id>`, bộ bài preset qua `scales.<id>`.
 - Mô hình dữ liệu theo §8: Session/Item/Criterion/Scale/Vote(round, anonymous)/Outcome. MVP dùng 1 criterion nhưng schema hỗ trợ nhiều criterion.
 - Không có thống kê theo cá nhân (§7).
+- Lý do (reason) bị che giống phiếu cho tới khi lật; `pending`/`banned` chỉ host thấy (2026-10-30).
+- Bị kick → vào `banned`, không join lại được trong vòng đời phòng. Chủ phòng (`ownerId`) luôn vào được dù phòng khóa hoặc cần duyệt (2026-10-30).
 
 ## Review Focus
 
@@ -88,177 +90,49 @@ Chi tiết + log thực hiện: `2026-10-30-01-task1-scaffold-deck.md`.
 
 ---
 
-### Task 2: `computeRoundStats`
+### Task 2: `computeRoundStats` — ✅ ĐÃ XONG (2026-10-30)
 
-**Files:** Create `apps/backend/src/domain/stats.ts` · Test `apps/backend/src/domain/stats.test.ts`
+Chi tiết + log thực hiện: `2026-10-30-03-task2-4-stats-room-redact.md`. Code: `apps/backend/src/domain/stats.ts` (+ `stats.test.ts`).
 
-**Interfaces:**
-- Consumes: `Scale`, `Card`, `SPECIAL_CARDS` (Task 1)
-- Produces:
   ```ts
+  type ConsensusLevel = 'absolute'|'high'|'medium'|'low'|'unknown'   // spreadSteps 0/1/2/≥3; không có phiếu thường → unknown
   interface RoundStats {
-    total: number                                   // gồm cả lá đặc biệt
-    distribution: { card: Card; count: number }[]   // chỉ card count>0; thứ tự theo thang, lá đặc biệt cuối
-    min: Card|null; max: Card|null                  // theo thứ tự thang, bỏ lá đặc biệt
-    spreadSteps: number                             // index(max)-index(min), 0 nếu <2 phiếu thường
-    needsDiscussion: boolean                        // spreadSteps >= 2
-    consensus: number                               // số phiếu của mode / số phiếu thường, 0..1; 0 nếu không có phiếu thường
-    consensusLevel: 'absolute'|'high'|'medium'|'low'|'unknown' // theo design: spreadSteps 0/1/2/≥3; không có phiếu thường → unknown
-    average: number|null                            // chỉ numeric scale
-    nearestCard: Card|null                          // lá gần average nhất; hoà → lá lớn hơn
-    modes: Card[]                                   // các lá nhiều phiếu nhất (hoà → tất cả)
+    total: number; distribution: { card: Card; count: number }[]      // theo thứ tự thang, lá đặc biệt ở cuối
+    min: Card|null; max: Card|null; spreadSteps: number; needsDiscussion: boolean   // spreadSteps >= 2
+    consensus: number; consensusLevel: ConsensusLevel
+    average: number|null; nearestCard: Card|null; modes: Card[]        // hòa → lá lớn hơn / tất cả mode
   }
-  function computeRoundStats(scale: Scale, cardIds: string[]): RoundStats
+  function computeRoundStats(scale: Scale, cardIds: readonly string[]): RoundStats   // throws UNKNOWN_CARD
   ```
-
-- [ ] **Step 1: Viết test fail** (giá trị chính xác):
-
-```ts
-const fib = PRESET_SCALES.fibonacci, ts = PRESET_SCALES.tshirt
-test('3,5,8 → spread 2, needs discussion, avg 5.33 → nearest 5', () => {
-  const s = computeRoundStats(fib, ['3','5','8'])
-  expect(s.spreadSteps).toBe(2); expect(s.needsDiscussion).toBe(true)
-  expect(s.average).toBeCloseTo(5.333, 2); expect(s.nearestCard!.id).toBe('5')
-})
-test('3,5 → spread 1, no discussion; avg 4 ties 3/5 → picks 5', () => {
-  const s = computeRoundStats(fib, ['3','5'])
-  expect(s.needsDiscussion).toBe(false); expect(s.nearestCard!.id).toBe('5')
-  expect(s.consensusLevel).toBe('high')
-})
-test('consensusLevel mapping', () => {
-  expect(computeRoundStats(fib, ['5','5']).consensusLevel).toBe('absolute')
-  expect(computeRoundStats(fib, ['3','8']).consensusLevel).toBe('medium')
-  expect(computeRoundStats(fib, ['2','13']).consensusLevel).toBe('low')
-  expect(computeRoundStats(fib, ['coffee']).consensusLevel).toBe('unknown')
-})
-test('special cards excluded from min/max/avg but counted in total', () => {
-  const s = computeRoundStats(fib, ['2','2','coffee'])
-  expect(s.total).toBe(3); expect(s.consensus).toBe(1); expect(s.average).toBe(2)
-  expect(s.distribution.at(-1)).toMatchObject({ card: { id: 'coffee' }, count: 1 })
-})
-test('tshirt: no average, modes instead, ties return both', () => {
-  const s = computeRoundStats(ts, ['S','S','L','L'])
-  expect(s.average).toBeNull(); expect(s.modes.map(c => c.id)).toEqual(['S','L'])
-  expect(s.spreadSteps).toBe(2)
-})
-test.each([[[]], [['shrug','infinity']], [['8']]])('degenerate %j does not crash', (ids) => {
-  const s = computeRoundStats(fib, ids)
-  expect(s.needsDiscussion).toBe(false); expect(s.spreadSteps).toBe(0)
-})
-test('unknown card id throws UNKNOWN_CARD', () => {
-  expect(() => computeRoundStats(fib, ['99'])).toThrow('UNKNOWN_CARD')
-})
-```
-
-- [ ] **Step 2: Chạy test.** Kỳ vọng: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 5: Commit** `feat(backend/domain): round statistics`
 
 ---
 
-### Task 3: Room reducer (`room/*`)
+### Task 3: Room reducer (`room/*`) — ✅ ĐÃ XONG (2026-10-30)
 
-**Files:** Create `apps/backend/src/domain/room/{types,participants,rounds,apply}.ts` · Test `apps/backend/src/domain/room/{participants,rounds}.test.ts`
+Chi tiết (toàn bộ type, luật, test): `2026-10-30-03-task2-4-stats-room-redact.md`. Code: `apps/backend/src/domain/room/{types,guards,participants,rounds,apply,testing}.ts` + `{participants,access,rounds}.test.ts`.
 
-**Interfaces:**
-- Consumes: `Scale`, `deckOf`, `computeRoundStats`
-- Produces:
-  ```ts
-  type Role = 'host'|'voter'|'observer'
-  interface Participant { id: string; userId: string|null; name: string; avatar: string; role: Role; joinedAt: number; online: boolean; offlineSince: number|null }
-  interface Item { id: string; source: 'manual'|'jira'; externalRef: string|null; title: string; description: string; status: 'pending'|'done' }
-  interface Round { itemId: string; number: number; status: 'voting'|'revealed'; votes: Record<string,string>; reasons: Record<string,string>; deadline: number|null; stats: RoundStats|null }
-  interface Outcome { itemId: string; value: string; note: string; decidedBy: string; decidedAt: number; rounds: number }
-  interface RoomState { id: string; hostId: string|null; successorId: string|null; participants: Record<string,Participant>;
-    items: Item[]; scale: Scale; revealRule: { onAllVoted: boolean; timerSec: number|null };
-    current: Round|null; history: Round[]; outcomes: Outcome[] }
-  type Command =
-    | { type:'join'; participant: Omit<Participant,'online'|'offlineSince'|'joinedAt'> }
-    | { type:'disconnect'; pid:string } | { type:'setRole'; pid:string; target:string; role:'voter'|'observer' }
-    | { type:'transferHost'; pid:string; target:string } | { type:'setSuccessor'; pid:string; target:string }
-    | { type:'addItems'; pid:string; items: Pick<Item,'title'|'description'>[] }
-    | { type:'startRound'; pid:string; itemId:string; timerSec?: number } | { type:'vote'; pid:string; cardId:string|null }
-    | { type:'reveal'; pid:string } | { type:'revote'; pid:string } | { type:'reason'; pid:string; text:string }
-    | { type:'finalize'; pid:string; value:string; note?:string } | { type:'rename'; pid:string; name:string; avatar?:string }
-    | { type:'tick' }
-  type DomainEvent = { type:'voted'|'unvoted'|'revealed'|'roundStarted'|'finalized'|'hostChanged'|'joined'|'left'|'discussionNeeded'; [k:string]: unknown }
-  function applyCommand(s: RoomState, c: Command, now: number): { state: RoomState; events: DomainEvent[] }  // throws DomainError(code)
-  function createRoom(id: string, host: Omit<Participant,'online'|'offlineSince'|'joinedAt'|'role'>, scale: Scale, now: number): RoomState
-  ```
-  Mã lỗi: `NOT_HOST`, `NOT_VOTER`, `ROUND_NOT_VOTING`, `ROUND_NOT_REVEALED`, `UNKNOWN_CARD`, `UNKNOWN_ITEM`, `HOST_NEEDS_ACCOUNT`, `REASON_TOO_LONG` (>200 ký tự).
-
-Quy tắc (spec §2/§3/§6 + roadmap §2): `join` với `id` đã tồn tại → chỉ set `online=true`, giữ nguyên role và phiếu. `vote` khi `cardId=null` → rút phiếu. `revote` → đưa `current` vào `history`, mở round `number+1` cho cùng item. `finalize` được gọi khi `revealed`; `value` có thể là bất kỳ lá nào hoặc chuỗi tự do; set `Item.status='done'` và thêm `Outcome` với `rounds` = số vòng của item. `reveal` tính `stats`; nếu `needsDiscussion` thì emit `discussionNeeded { lowPids, highPids }`.
-
-- [ ] **Step 1: Viết test fail — participants.test.ts**
-
-```ts
-test('rejoin with same id keeps seat and vote', ...)            // join→vote '5'→disconnect→join → votes[pid]==='5', 1 participant
-test('voter→observer mid-round removes their vote', ...)
-test('host offline 60_001ms → host goes to designated successor (registered, online)', ...)
-test('no successor → earliest-joined online registered user', ...)
-test('only guests online → hostId null; next registered join becomes host', ...)
-test('host offline 59_999ms → unchanged', ...)
-test('transferHost to guest throws HOST_NEEDS_ACCOUNT', ...)
-test('non-host startRound throws NOT_HOST', ...)
-```
-
-- [ ] **Step 2: Viết test fail — rounds.test.ts**
-
-```ts
-test('vote after reveal throws ROUND_NOT_VOTING and stats unchanged', ...)
-test('observer vote throws NOT_VOTER', ...)
-test('onAllVoted: last online voter votes → auto reveal event', ...)  // voter offline không tính
-test('timer: tick at deadline reveals; tick before does not', ...)
-test('revote keeps history: history.length===1, current.number===2, votes empty', ...)
-test('finalize with value differing from stats is allowed; item done; outcome.rounds===2', ...)
-test('reveal with 3/13 emits discussionNeeded with lowPids/highPids', ...)
-test('reason >200 chars throws REASON_TOO_LONG', ...)
-```
-
-- [ ] **Step 3: Chạy test.** Kỳ vọng: FAIL.
-- [ ] **Step 4: Implement.** Mỗi handler là hàm thuần trả về state mới (không mutate state cũ). `tick` lo cả auto-reveal theo timer lẫn chuyển host khi host offline quá 60 giây.
-- [ ] **Step 5: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 6: Commit** `feat(backend/domain): room state machine`
+**Khác bản thiết kế ban đầu:**
+- `Role = 'voter'|'observer'`; host là `RoomState.hostId` (tách khỏi role, host mặc định là voter).
+- `createRoom({ id, owner, scale, now, enabledSpecials?, revealRule?, access? })` — object options. `RoomState` có thêm `ownerId`, `pending`, `banned`, `access {locked, requireApproval}`, `enabledSpecials`, `itemSeq`.
+- Command thêm `kick`, `approve`, `reject`, `setAccess`; event thêm `kicked`, `rejected`, `approvalRequested`, `accessChanged`, `offline`, `renamed`, `unvoted`; `hostChanged.reason` có `'claimed'`.
+- `startRound` khi vòng đang voting → vòng đó bị bỏ (không vào `history`). Auto-reveal `onAllVoted` chỉ xét khi có phiếu mới. `revealRule` mặc định `{ onAllVoted: false, timerSec: null }`.
+- Mã lỗi: `NOT_IN_ROOM, NOT_HOST, NOT_VOTER, UNKNOWN_PARTICIPANT, INVALID_TARGET, HOST_NEEDS_ACCOUNT, KICKED, ROOM_LOCKED, NAME_INVALID, ITEM_TITLE_EMPTY, UNKNOWN_ITEM, TIMER_INVALID, ROUND_NOT_VOTING, ROUND_NOT_REVEALED, NO_ROUND, CARD_NOT_IN_DECK, REASON_TOO_LONG, FINAL_EMPTY`.
+- Hằng số: `HOST_OFFLINE_MS=60000`, `REASON_MAX=200`, `NAME_MAX=40`, `TIMER_MAX_SEC=3600`.
 
 ---
 
-### Task 4: `toPublicState` + summary/CSV
+### Task 4: `toPublicState` + summary/CSV — ✅ ĐÃ XONG (2026-10-30)
 
-**Files:** Create `apps/backend/src/domain/{redact,summary}.ts` · Test `apps/backend/src/domain/{redact,summary}.test.ts`
+Code: `apps/backend/src/domain/{redact,summary}.ts` + test.
 
-**Interfaces:**
-- Produces:
   ```ts
-  type PublicRound = Omit<Round,'votes'> & { voted: string[]; myVote: string|null; votes: Record<string,string>|null } // votes chỉ != null khi revealed
-  type PublicRoomState = Omit<RoomState,'current'|'history'> & { current: PublicRound|null; history: Round[] }
-  function toPublicState(s: RoomState, viewerPid: string): PublicRoomState
-  interface SummaryRow { key: string|null; title: string; final: string; rounds: number; notes: string; specialCards: string[] }
-  function buildSummary(s: RoomState): { rows: SummaryRow[]; totals: { items: number; rounds: number; mostUsedSpecial: string|null } }
-  function toCsv(rows: SummaryRow[]): string   // header: key,title,final,rounds,notes,special_cards ; RFC 4180 quoting; BOM UTF-8
+  interface PublicRound extends Omit<Round,'votes'|'reasons'> { voted: string[]; myVote: string|null; votes: Record<string,string>|null; reasons: Record<string,string> }
+  type PublicRoomState = Omit<RoomState,'current'> & { current: PublicRound|null }   // pending/banned rỗng nếu viewer không phải host
+  function toPublicState(s: RoomState, viewerPid: string): PublicRoomState            // voting: votes=null, reasons chỉ của viewer
+  interface SummaryRow { key: string|null; title: string; final: string; rounds: number; notes: string; specialCards: SpecialId[] }
+  function buildSummary(s: RoomState): { rows: SummaryRow[]; totals: { items; finalized; rounds; mostUsedSpecial: SpecialId|null } }
+  function toCsv(rows: SummaryRow[]): string   // BOM, CRLF, RFC 4180, prefix ' cho ô bắt đầu bằng = + - @ \t \r
   ```
-
-- [ ] **Step 1: Viết test fail**
-
-```ts
-test('voting: JSON of public state for viewer B never contains A\'s cardId', () => {
-  // A vote '13' (giá trị duy nhất trong phòng); B nhìn
-  const json = JSON.stringify(toPublicState(s, 'B'))
-  expect(json).not.toContain('"13"'); expect(pub.current!.voted).toContain('A')
-})
-test('viewer sees own vote as myVote', ...)
-test('revealed: votes visible', ...)
-test('csv escapes quotes, commas, newlines and starts with BOM', () => {
-  expect(toCsv([{ key:null, title:'a,"b"\nc', final:'5', rounds:1, notes:'', specialCards:[] }]))
-    .toBe('﻿key,title,final,rounds,notes,special_cards\r\n,"a,""b""\nc",5,1,,\r\n')
-})
-test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
-```
-
-- [ ] **Step 2: Chạy test.** Kỳ vọng: FAIL.
-- [ ] **Step 3: Implement.** `notes` = các dòng lý do của mọi vòng nối bằng `\n` (§3 "gom lại thành ghi chú"), **không kèm tên người** (§7).
-- [ ] **Step 4: Chạy test.** Kỳ vọng: PASS.
-- [ ] **Step 5: Commit** `feat(backend/domain): vote redaction, summary, csv`
 
 ---
 

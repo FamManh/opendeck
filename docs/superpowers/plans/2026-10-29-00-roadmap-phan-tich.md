@@ -28,6 +28,9 @@ File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1, 9 task) · `20
 6. **Trung bình hòa giữa 2 lá** (ví dụ avg = 4 giữa 3 và 5) → chọn lá **lớn hơn** (thiên về an toàn).
 7. **Mode T-shirt bị hòa** → trả về tất cả giá trị hòa.
 8. **Đổi vai voter → observer giữa vòng** → phiếu của vòng hiện tại bị xóa.
+9. **Host tách khỏi vai trò** (chốt 2026-10-30): vai trò chỉ có `voter`/`observer`; host là một quyền riêng (`hostId`), nên host vẫn bỏ phiếu được.
+10. **Bắt đầu vòng mới khi vòng cũ chưa lật** (chốt 2026-10-30) → vòng cũ bị bỏ hẳn, không lưu vào lịch sử, để lịch sử không bao giờ giữ phiếu chưa lật.
+11. **Tự lật khi mọi người đã bỏ phiếu** (chốt 2026-10-30): mặc định tắt; khi bật, chỉ xét lúc có phiếu mới (không xét khi có người rớt mạng), và chỉ đếm voter đang online.
 
 ## 3. Câu hỏi mở ảnh hưởng tới plan (§10)
 
