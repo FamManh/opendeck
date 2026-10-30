@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import type { INestApplication } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { Test } from '@nestjs/testing'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import request from 'supertest'
@@ -10,6 +11,7 @@ import { configureApp } from '../../src/app.setup'
 import { CLOCK } from '../../src/common/clock'
 import { CommonModule } from '../../src/common/common.module'
 import { AuthModule } from '../../src/auth/auth.module'
+import { MailModule } from '../../src/mail/mail.module'
 import { User } from '../../src/users/user.entity'
 
 let db: TestDb, app: INestApplication
@@ -19,7 +21,11 @@ const http = () => request(app.getHttpServer())
 beforeAll(async () => {
   db = await createTestDb()
   const mod = await Test.createTestingModule({
-    imports: [CommonModule, TypeOrmModule.forRoot(typeOrmOptions(db.url)), AuthModule],
+    imports: [
+      ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+      CommonModule, MailModule,
+      TypeOrmModule.forRoot(typeOrmOptions(db.url)), AuthModule,
+    ],
   }).overrideProvider(CLOCK).useValue(clock.now).compile()
   app = configureApp(mod.createNestApplication())
   await app.init()
