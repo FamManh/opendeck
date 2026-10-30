@@ -1,4 +1,6 @@
 packages:
   - apps/*
 allowBuilds:
+  '@nestjs/core': false
+  '@swc/core': true
   esbuild: true

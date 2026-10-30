@@ -4,9 +4,9 @@
 
 **Goal:** Ra phiên bản Planning Poker chạy được end-to-end: tài khoản, khách, phòng công khai/có mật khẩu, bỏ phiếu bí mật realtime, lật bài, thống kê, bỏ phiếu lại, chốt điểm, tổng kết + CSV. Plan này chưa có Jira và chưa có hiệu ứng nặng.
 
-**Architecture:** Domain thuần nằm trong `apps/backend/src/domain` (frontend import trực tiếp qua `apps/frontend/src/domain.ts`): reducer `applyCommand` và `computeRoundStats`, không I/O, dùng chung cho server và client. Server Fastify + Socket.IO giữ `RoomState` trong bộ nhớ (nguồn sự thật duy nhất), ghi Postgres qua Prisma, và gửi cho mỗi socket bản đã che phiếu (`toPublicState`). Web React chỉ render state đã nhận và gửi command.
+**Architecture:** Domain thuần nằm trong `apps/backend/src/domain` (frontend import trực tiếp qua `apps/frontend/src/domain.ts`): reducer `applyCommand` và `computeRoundStats`, không I/O, dùng chung cho server và client. Server NestJS + Socket.IO (`@nestjs/websockets`) giữ `RoomState` trong bộ nhớ (nguồn sự thật duy nhất), ghi Postgres qua TypeORM, và gửi cho mỗi socket bản đã che phiếu (`toPublicState`). Web React chỉ render state đã nhận và gửi command.
 
-**Tech Stack:** TypeScript 5, pnpm workspaces, Node 20, Fastify 4, Socket.IO 4, Prisma 5 + PostgreSQL 16, argon2, nanoid, React 18 + Vite 5 + Zustand + react-router 6, i18next, Vitest, Playwright.
+**Tech Stack:** TypeScript 5, pnpm workspaces, Node 20+, NestJS 10 + TypeORM 0.3 + PostgreSQL 16 (docker compose, port 5433), Socket.IO 4, argon2, nanoid, React 19 + Vite 7 + Tailwind CSS v4 + shadcn/ui + Zustand + react-router, i18next, Vitest, Playwright. *(Đổi từ Fastify/Prisma/React 18 ngày 2026-10-30.)*
 
 **Spec:** `docs/Đặc tả sản phẩm — Planning Poker.md` · Phân tích + quyết định: `docs/superpowers/plans/2026-10-29-00-roadmap-phan-tich.md` §2
 
@@ -103,6 +103,7 @@ Chi tiết + log thực hiện: `2026-10-30-01-task1-scaffold-deck.md`.
     spreadSteps: number                             // index(max)-index(min), 0 nếu <2 phiếu thường
     needsDiscussion: boolean                        // spreadSteps >= 2
     consensus: number                               // số phiếu của mode / số phiếu thường, 0..1; 0 nếu không có phiếu thường
+    consensusLevel: 'absolute'|'high'|'medium'|'low'|'unknown' // theo design: spreadSteps 0/1/2/≥3; không có phiếu thường → unknown
     average: number|null                            // chỉ numeric scale
     nearestCard: Card|null                          // lá gần average nhất; hoà → lá lớn hơn
     modes: Card[]                                   // các lá nhiều phiếu nhất (hoà → tất cả)
@@ -122,6 +123,13 @@ test('3,5,8 → spread 2, needs discussion, avg 5.33 → nearest 5', () => {
 test('3,5 → spread 1, no discussion; avg 4 ties 3/5 → picks 5', () => {
   const s = computeRoundStats(fib, ['3','5'])
   expect(s.needsDiscussion).toBe(false); expect(s.nearestCard!.id).toBe('5')
+  expect(s.consensusLevel).toBe('high')
+})
+test('consensusLevel mapping', () => {
+  expect(computeRoundStats(fib, ['5','5']).consensusLevel).toBe('absolute')
+  expect(computeRoundStats(fib, ['3','8']).consensusLevel).toBe('medium')
+  expect(computeRoundStats(fib, ['2','13']).consensusLevel).toBe('low')
+  expect(computeRoundStats(fib, ['coffee']).consensusLevel).toBe('unknown')
 })
 test('special cards excluded from min/max/avg but counted in total', () => {
   const s = computeRoundStats(fib, ['2','2','coffee'])
@@ -256,6 +264,8 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 
 ### Task 5: Server — DB schema + auth
 
+> **Stack đã đổi (2026-10-30):** phần dưới vẫn viết theo Fastify/Prisma. Khi bắt đầu task này, viết lại chi tiết theo NestJS: module/controller/guard, TypeORM entity + migration, `@nestjs/websockets` + Socket.IO adapter. Skeleton đã có: `/api/health`, `DatabaseModule` (`migrationsRun: true`), `pnpm db:up`.
+
 **Files:**
 - Create: `docker-compose.yml`, `apps/backend/{package.json,tsconfig.json}`, `apps/backend/prisma/schema.prisma`, `apps/backend/src/{app.ts,main.ts}`, `apps/backend/src/auth/{routes,password,rateLimit,session}.ts`
 - Test: `apps/backend/test/auth.test.ts` (dùng `app.inject` + Postgres test DB lấy từ `DATABASE_URL_TEST`)
@@ -274,6 +284,8 @@ test('csv neutralises formula injection: title "=cmd" → "\'=cmd"', ...)
 ---
 
 ### Task 6: Server — phòng, khách, realtime gateway
+
+> **Stack đã đổi (2026-10-30):** phần dưới vẫn viết theo Fastify/Prisma. Khi bắt đầu task này, viết lại chi tiết theo NestJS: module/controller/guard, TypeORM entity + migration, `@nestjs/websockets` + Socket.IO adapter. Skeleton đã có: `/api/health`, `DatabaseModule` (`migrationsRun: true`), `pnpm db:up`.
 
 **Files:**
 - Create: `apps/backend/src/rooms/{routes,roomStore,persistence}.ts`, `apps/backend/src/realtime/gateway.ts`, `apps/backend/src/guests.ts`
@@ -340,7 +352,7 @@ Bố cục theo §5 và file design: bàn chơi ở giữa (task hiện tại, A
 - [ ] **Step 1: Viết test fail:**
   - CardFan: bấm lá → `send({type:'vote',cardId})`; bấm lại lá đang chọn → `cardId:null`; observer không thấy quạt bài; phím 1–9 chọn lá tương ứng.
   - Seat: trạng thái `voted` (lá úp), `thinking`, `offline` (mờ); không bao giờ hiện giá trị trước khi lật.
-  - ResultsPanel: render phân bố, min/max, consensus %, average + nearestCard với bộ số; bộ T-shirt hiện modes thay cho average; `needsDiscussion` hiện lời mời người thấp nhất/cao nhất nói trước (kèm tên); host thấy nút "Chốt" (chọn lá hoặc nhập giá trị) và "Bỏ phiếu lại".
+  - ResultsPanel: render phân bố, min/max, chip "Đồng thuận: {Tuyệt đối|Cao|Vừa phải|Thấp|Chưa rõ}" theo `consensusLevel`, consensus %, average + nearestCard với bộ số; bộ T-shirt hiện modes thay cho average; `needsDiscussion` hiện lời mời người thấp nhất/cao nhất nói trước (kèm tên); host thấy nút "Chốt" (chọn lá hoặc nhập giá trị) và "Bỏ phiếu lại".
   - Khi `connection==='reconnecting'` hiện banner; khi có lại state mới thì banner ẩn.
 - [ ] **Step 2: Chạy test.** Kỳ vọng: FAIL.
 - [ ] **Step 3: Implement.** Store nhận `state` và thay thế toàn bộ state. `send` resolve hoặc reject theo ack. Socket.IO bật reconnect mặc định.

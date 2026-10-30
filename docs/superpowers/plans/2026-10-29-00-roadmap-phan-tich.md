@@ -14,7 +14,7 @@ Spec gồm **5 hệ thống con độc lập**. Gộp vào một plan thì khôn
 | 3 | **Tích hợp Jira** — ⏸ **HOÃN** (quyết định 2026-10-30) | §4, §7 (token, quyền Jira, nhật ký) | Plan 1; câu hỏi Cloud/DC | Kéo issue, đẩy điểm có preview + phát hiện xung đột |
 | 4 | **Hậu MVP (giai đoạn 2+)** | §5 gamification, §7 lưu trữ 12 tháng, Excel, template khác | 1–2 (phần Jira của template khác chờ Plan 3) | Huy hiệu, trang phục, retention job, export Excel |
 
-File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1). Plan 2 sẽ viết sau khi Plan 1 chốt interface (`RoomState`, event socket), để không phải đoán.
+File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1, 9 task) · `2026-10-30-02-effects-mascots-reactions.md` (Plan 2, 8 task).
 
 **Quyết định 2026-10-30: Jira làm sau.** Giai đoạn này chỉ có Chế độ B của §4: tạo task bằng tay (gõ, dán nhiều dòng, import CSV), còn kết quả lấy ra bằng file CSV xuất ở trang tổng kết. Lộ trình làm: Plan 1 → Plan 2 → Plan 4, còn Plan 3 (Jira) làm khi có nhu cầu. Plan 1 vẫn giữ sẵn chỗ cho Jira mà không viết thêm code nào: `Item.source` / `Item.externalRef` và CSV có cột `key`, để sau này nối Jira không phải đổi schema.
 
@@ -38,5 +38,5 @@ File chi tiết: `2026-10-29-01-core-realtime-voting.md` (Plan 1). Plan 2 sẽ v
 
 ## 4. Stack chọn (spec không quy định)
 
-TypeScript monorepo pnpm, **chỉ 2 app, không có `packages/`** (quyết định 2026-10-30) · `apps/frontend`: React 18 + Vite + Zustand + i18next · `apps/backend`: Fastify + Socket.IO · PostgreSQL + Prisma · domain thuần (không I/O) nằm ở `apps/backend/src/domain`, frontend import trực tiếp qua `apps/frontend/src/domain.ts` · Vitest + Playwright.
+TypeScript monorepo pnpm, **chỉ 2 app, không có `packages/`** (quyết định 2026-10-30) · `apps/frontend`: React 19 + Vite 7 + Tailwind CSS v4 + shadcn/ui + Zustand + i18next · `apps/backend`: NestJS 10 + Socket.IO · PostgreSQL 16 + TypeORM 0.3 (quyết định 2026-10-30) · domain thuần (không I/O) nằm ở `apps/backend/src/domain`, frontend import trực tiếp qua `apps/frontend/src/domain.ts` · Vitest + Playwright.
 Lý do: logic phòng/bỏ phiếu nằm ở domain thuần nên test nhanh. Server là nguồn sự thật duy nhất (§6) và chỉ gửi sự kiện nhỏ.
