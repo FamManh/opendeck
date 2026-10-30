@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:relative;width:100%;height:100%;perspective:800px;container-type:size;font-family:'Hanken Grotesk',sans-serif;opacity:{{op}};transition:opacity 300ms">
+<div style="position:absolute;inset:0;transform-style:preserve-3d;transition:{{trans}};transform:{{rot}}">
+<div style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#FFFFFF;border-radius:10cqw;border:1px solid #E0E0E0;overflow:hidden;color:#141414">
+<sc-if value="{{isNum}}" hint-placeholder-val="{{true}}">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44cqw;font-weight:650;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">{{value}}</div>
+<sc-if value="{{showCorners}}"><div style="position:absolute;left:9cqw;top:6cqw;font-size:13cqw;font-weight:650;line-height:1;color:#FF7A3D">{{value}}</div><div style="position:absolute;right:9cqw;bottom:6cqw;font-size:13cqw;font-weight:650;line-height:1;color:#FF7A3D;transform:rotate(180deg)">{{value}}</div></sc-if>
+</sc-if>
+<sc-if value="{{isCoffee}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#F8EBDD;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;color:#8A5A33"><svg viewBox="0 0 24 24" style="width:54cqw;height:54cqw" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"></path><path d="M14 2v2"></path><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"></path><path d="M6 2v2"></path></svg><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Cần nghỉ</div></sc-if></div></sc-if>
+<sc-if value="{{isQuestion}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#E6EEFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:#2F6FE4"><div style="font-size:50cqw;font-weight:650;line-height:1">?</div><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Chưa rõ</div></sc-if></div></sc-if>
+<sc-if value="{{isBug}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#E3F5E8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;color:#23964A"><svg viewBox="0 0 24 24" style="width:54cqw;height:54cqw" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88"></path><path d="M14.12 3.88 16 2"></path><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"></path><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"></path><path d="M12 20v-9"></path><path d="M6.53 9C4.6 8.8 3 7.1 3 5"></path><path d="M6 13H2"></path><path d="M3 21c0-2.1 1.7-3.9 3.8-4"></path><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"></path><path d="M22 13h-4"></path><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"></path></svg><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Mùi bug</div></sc-if></div></sc-if>
+<sc-if value="{{isBomb}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#FCE7E4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;color:#D94841"><svg viewBox="0 0 24 24" style="width:54cqw;height:54cqw" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="9"></circle><path d="M14.35 4.65 16.3 2.7a2.41 2.41 0 0 1 3.4 0l1.6 1.6a2.4 2.4 0 0 1 0 3.4l-1.95 1.95"></path><path d="m22 2-1.5 1.5"></path></svg><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Rủi ro cao</div></sc-if></div></sc-if>
+<sc-if value="{{isPuzzle}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#EEE7FE;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;color:#7C4DE8"><svg viewBox="0 0 24 24" style="width:54cqw;height:54cqw" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"></path></svg><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Phụ thuộc</div></sc-if></div></sc-if>
+<sc-if value="{{isInfinity}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#DFF5F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;color:#0E8F93"><svg viewBox="0 0 24 24" style="width:62cqw;height:54cqw" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"></path></svg><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Quá lớn</div></sc-if></div></sc-if>
+<sc-if value="{{isShrug}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;background:#FFF2D6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6cqw;color:#B86E00"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:14cqw;font-weight:500;white-space:nowrap;line-height:1">¯\_(ツ)_/¯</div><sc-if value="{{showLabel}}"><div style="font-family:'Hanken Grotesk',sans-serif;font-size:10.5cqw;font-weight:650;letter-spacing:.01em">Không biết</div></sc-if></div></sc-if>
+</div>
+<div style="position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);background:#2B4170;border-radius:10cqw;border:2px solid #1C2D50;display:flex;align-items:center;justify-content:center">
+<div style="position:absolute;inset:7cqw;border-radius:8cqw;border:1.5px solid rgba(255,214,140,.45);background:transparent"></div>
+<div style="position:relative;width:38cqw;height:38cqw;border-radius:50%;background:#FFB627;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:24cqw;height:24cqw"><path d="M12 2 Q12 12 22 12 Q12 12 12 22 Q12 12 2 12 Q12 12 12 2 Z" fill="#2B4170"></path></svg></div>
+</div>
+</div>
+<sc-if value="{{selected}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:-5px;border-radius:calc(10cqw + 5px);border:3px solid #FFB627;pointer-events:none"></div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:120,&quot;height&quot;:170},&quot;value&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;5&quot;,&quot;8&quot;,&quot;13&quot;,&quot;21&quot;,&quot;coffee&quot;,&quot;question&quot;,&quot;bug&quot;,&quot;bomb&quot;,&quot;puzzle&quot;,&quot;infinity&quot;,&quot;shrug&quot;],&quot;default&quot;:&quot;5&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;faceUp&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;selected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dim&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;compact&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;instant&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const v = String(p.value ?? '5');
+    const nums = ['0','1','2','3','5','8','13','20','21','40','100','½'];
+    const isNum = nums.includes(v) || /^[0-9]+$/.test(v);
+    const faceUp = p.faceUp ?? true;
+    return {
+      value: v, isNum,
+      isCoffee: v === 'coffee', isQuestion: v === 'question', isBug: v === 'bug', isBomb: v === 'bomb',
+      isPuzzle: v === 'puzzle', isInfinity: v === 'infinity', isShrug: v === 'shrug',
+      showCorners: isNum && !p.compact, showLabel: !p.compact,
+      rot: faceUp ? 'rotateY(0deg)' : 'rotateY(180deg)',
+      trans: p.instant ? 'none' : 'transform 560ms cubic-bezier(.3,.7,.35,1.15)',
+      op: p.dim ? 0.4 : 1,
+      selected: !!p.selected
+    };
+  }
+}
+</script>
+</body>
+</html>

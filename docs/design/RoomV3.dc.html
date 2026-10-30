@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300..800&display=swap" rel="stylesheet">
+<style>
+@keyframes ppPop{0%{transform:scale(.4);opacity:0}35%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes ppFloat{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-24px) scale(1)}100%{transform:translateY(-240px) rotate(14deg);opacity:0}}
+@keyframes ppConf{0%{transform:translateY(-220px) rotate(0deg);opacity:1}80%{opacity:1}100%{transform:translateY(180px) rotate(240deg);opacity:0}}
+@keyframes ppFade{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+@keyframes ppPlane{0%{transform:translate(-110px,70px) rotate(-12deg);opacity:0}20%{opacity:1}80%{transform:translate(0,0) rotate(8deg);opacity:1}100%{transform:translate(8px,-6px);opacity:0}}
+</style>
+</helmet>
+<div style="{{rootStyle}}">
+
+<sc-if value="{{isDesktop}}" hint-placeholder-val="{{true}}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+  <div style="height:60px;flex:none;display:flex;align-items:center;gap:10px;margin:12px 16px 0;padding:0 8px 0 20px;border-radius:9999px;background:var(--soft)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="position:relative;width:34px;height:34px"><div style="position:absolute;left:2px;top:4px;width:19px;height:27px;border-radius:9999px;background:var(--orange);transform:rotate(-12deg)"></div><div style="position:absolute;left:12px;top:2px;width:19px;height:27px;border-radius:9999px;background:var(--accent);transform:rotate(9deg);border:2px solid var(--soft)"></div></div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:17px;letter-spacing:0">Planning Poker</div>
+    </div>
+    <div style="width:2px;height:30px;background:var(--line)"></div>
+    <div style="display:flex;flex-direction:column">
+      <div style="font-weight:600;font-size:14px;line-height:1.2">Sprint 24 · Team Thanh toán</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:600">7 người chơi · 1 người quan sát</div>
+    </div>
+    <button onClick="{{copyLink}}" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:9999px;border:none;background:var(--surface);color:var(--ink);font:inherit;font-weight:600;cursor:pointer">
+      <span style="font-family:'Hanken Grotesk',sans-serif;letter-spacing:.06em;font-size:13px;white-space:nowrap">PKR-7Q4M</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap">{{copyLabel}}</span>
+    </button>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:9999px;background:var(--surface);font-weight:600">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg>
+      <span style="font-family:'Hanken Grotesk',sans-serif;font-size:14px;font-variant-numeric:tabular-nums;line-height:1">{{timerText}}</span>
+    </div>
+    <div style="height:40px;display:flex;align-items:center;padding:0 14px;border-radius:9999px;border:none;font-weight:600;font-size:13px;white-space:nowrap">{{votedText}}</div>
+    <button onClick="{{toggleMenu}}" aria-label="Cài đặt hiệu ứng" style="width:44px;height:44px;border-radius:50%;border:none;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg>
+    </button>
+    <sc-if value="{{showFlipBtn}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{flip}}" style="height:40px;padding:0 18px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;opacity:{{flipOp}}" style-active="background:var(--accentDeep)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>{{flipLabel}}
+      </button>
+    </sc-if>
+  </div>
+
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px">
+    <div style="position:relative;min-width:0;display:flex;flex-direction:column">
+      <div style="position:relative;flex:1;min-height:0">
+
+        <sc-if value="{{isRound}}" hint-placeholder-val="{{true}}">
+          <div style="position:absolute;left:50%;top:48%;width:660px;height:340px;transform:translate(-50%,-50%);border-radius:999px;background:var(--rim);padding:10px">
+            <div style="position:relative;width:100%;height:100%;border-radius:999px;background:var(--felt)"><div style="position:absolute;inset:18px;border-radius:999px;border:1px solid rgba(255,255,255,.14)"></div><div style="position:absolute;left:50%;top:30px;transform:translateX(-50%);font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.32);white-space:nowrap">PLANNING POKER</div></div>
+          </div>
+          <sc-for list="{{seats}}" as="s" hint-placeholder-count="6">
+            <div style="position:absolute;left:{{s.slotLeft}};top:{{s.slotTop}};width:46px;height:64px;transform:{{s.slotT}};z-index:2">
+              <sc-if value="{{s.hasCard}}"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{s.value}}" face-up="{{s.faceUp}}" compact="{{true}}" instant="{{s.instant}}" hint-size="46px,64px"></dc-import></sc-if>
+              <sc-if value="{{s.noCard}}"><div style="width:100%;height:100%;border-radius:8px;border:2px dashed rgba(247,241,227,.3)"></div></sc-if>
+            </div>
+          </sc-for>
+          <div style="position:absolute;left:50%;top:calc(48% + 118px);width:46px;height:64px;transform:translate(-50%,-50%);z-index:2">
+            <sc-if value="{{me.hasCard}}"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{me.value}}" face-up="{{me.faceUp}}" compact="{{true}}" instant="{{me.instant}}" hint-size="46px,64px"></dc-import></sc-if>
+            <sc-if value="{{me.noCard}}"><div style="width:100%;height:100%;border-radius:8px;border:2px dashed rgba(247,241,227,.3)"></div></sc-if>
+          </div>
+          <div style="position:absolute;left:calc(50% + 36px);top:calc(48% + 118px);transform:translateY(-50%);z-index:2;font-size:12px;font-weight:600;color:var(--cream);background:rgba(255,255,255,.12);padding:3px 10px;border-radius:9999px">Bạn</div>
+
+          <div style="position:absolute;left:50%;top:calc(48% - 10px);transform:translate(-50%,-50%);width:380px;z-index:5;background:var(--paper);color:var(--paperInk);border-radius:24px;padding:16px 18px;box-shadow:none;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-weight:600;font-size:13px;padding:3px 10px;border-radius:9999px;background:var(--keyBg);color:var(--keyInk)">{{task.key}}</span>
+              <span style="font-size:13px;font-weight:450;color:var(--muted);white-space:nowrap">{{task.type}} · Sprint 24</span>
+              <span style="margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap">Vòng {{round}}</span>
+            </div>
+            <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:18px;line-height:1.1;text-wrap:pretty">{{task.title}}</div>
+            <div style="font-size:14px;line-height:1.45;color:var(--muted);max-height:40px;overflow:hidden">{{task.desc}}</div>
+            <sc-if value="{{hasAc}}">
+              <button onClick="{{toggleAc}}" style="display:flex;align-items:center;gap:6px;align-self:flex-start;height:32px;padding:0 12px;border-radius:9999px;border:none;background:var(--chip);color:var(--paperInk);font:inherit;font-size:13px;font-weight:600;cursor:pointer"><span style="white-space:nowrap">Tiêu chí nghiệm thu ({{acCount}})</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="transform:{{acChevron}};transition:transform 200ms"><path d="m6 9 6 6 6-6"></path></svg></button>
+            </sc-if>
+            <sc-if value="{{acOpenNow}}">
+              <div style="display:flex;flex-direction:column;gap:6px;padding-top:2px">
+                <sc-for list="{{acList}}" as="a" hint-placeholder-count="4">
+                  <div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;width:20px;height:20px;border-radius:7px;background:var(--keyBg);color:var(--keyInk);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{a.n}}</span><span>{{a.text}}</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{isLocked}}"><div style="position:absolute;right:-18px;top:-30px;z-index:6;width:112px;height:112px;border-radius:50%;border:5px solid var(--orange);color:var(--orange);background:rgba(255,252,245,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:{{stampT}};opacity:{{stampOp}};transition:{{stampTrans}};font-family:'Hanken Grotesk',sans-serif;pointer-events:none"><div style="font-size:12px;font-weight:600;letter-spacing:.12em;line-height:1">ĐÃ CHỐT</div><div style="font-size:34px;font-weight:600;line-height:.95">{{final}}</div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;line-height:1">ĐIỂM</div></div></sc-if>
+          </div>
+
+          <sc-for list="{{seats}}" as="s" hint-placeholder-count="6">
+            <div style="position:absolute;left:{{s.left}};top:{{s.top}};transform:translate(-50%,-50%);width:120px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:{{s.op}};z-index:4;transition:opacity 300ms">
+              <button onClick="{{s.onPoke}}" title="{{s.tip}}" style="position:relative;width:80px;height:80px;padding:0;border:none;background:none;cursor:{{s.cursor}}">
+                <dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{s.species}}" state="{{s.mstate}}" hint-size="80px,80px"></dc-import>
+                <div style="position:absolute;right:-8px;top:-6px;pointer-events:none">{{s.plane}}</div>
+              </button>
+              <div style="font-weight:600;font-size:13px;line-height:1.1">{{s.name}}</div>
+              <sc-if value="{{s.isSleeping}}"><button onClick="{{s.onPoke}}" style="display:flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font:inherit;font-size:12px;font-weight:600;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>Ném máy bay</button></sc-if>
+              <sc-if value="{{s.notSleeping}}"><div style="height:22px;display:flex;align-items:center;padding:0 8px;border-radius:9999px;background:var(--chip);color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap">{{s.status}}</div></sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{isLong}}" hint-placeholder-val="{{false}}">
+          <div style="position:absolute;left:0;right:0;top:12px;display:flex;justify-content:center;gap:24px;z-index:4">
+            <sc-for list="{{seats}}" as="s" hint-placeholder-count="6">
+              <div style="width:120px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:{{s.op}};transition:opacity 300ms">
+                <button onClick="{{s.onPoke}}" title="{{s.tip}}" style="position:relative;width:80px;height:80px;padding:0;border:none;background:none;cursor:{{s.cursor}}">
+                  <dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{s.species}}" state="{{s.mstate}}" hint-size="80px,80px"></dc-import>
+                  <div style="position:absolute;right:-8px;top:-6px;pointer-events:none">{{s.plane}}</div>
+                </button>
+                <div style="font-weight:600;font-size:13px;line-height:1.1">{{s.name}}</div>
+                <sc-if value="{{s.isSleeping}}"><button onClick="{{s.onPoke}}" style="display:flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font:inherit;font-size:12px;font-weight:600;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>Ném máy bay</button></sc-if>
+                <sc-if value="{{s.notSleeping}}"><div style="height:22px;display:flex;align-items:center;padding:0 8px;border-radius:9999px;background:var(--chip);color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap">{{s.status}}</div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position:absolute;left:36px;right:36px;top:158px;bottom:14px;border-radius:56px;background:var(--rim);padding:12px;box-shadow:0 8px 0 var(--rim2)">
+            <div style="width:100%;height:100%;border-radius:44px;background:radial-gradient(ellipse at 50% 40%,var(--felt2),var(--felt) 75%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.07)"></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;top:184px;display:flex;justify-content:center;gap:24px;z-index:3">
+            <sc-for list="{{seats}}" as="s" hint-placeholder-count="6">
+              <div style="width:120px;display:flex;justify-content:center">
+                <div style="width:46px;height:64px;transform:{{s.slotRotT}}">
+                  <sc-if value="{{s.hasCard}}"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{s.value}}" face-up="{{s.faceUp}}" compact="{{true}}" instant="{{s.instant}}" hint-size="46px,64px"></dc-import></sc-if>
+                  <sc-if value="{{s.noCard}}"><div style="width:100%;height:100%;border-radius:8px;border:2px dashed rgba(247,241,227,.3)"></div></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position:absolute;left:50%;top:272px;transform:translateX(-50%);width:760px;z-index:5;background:var(--paper);color:var(--paperInk);border-radius:9999px;padding:20px 24px;box-shadow:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px">
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-weight:600;font-size:13px;padding:3px 10px;border-radius:9999px;background:var(--keyBg);color:var(--keyInk)">{{task.key}}</span>
+                <span style="font-size:13px;font-weight:450;color:var(--muted)">{{task.type}} · Sprint 24 · Vòng {{round}}</span>
+              </div>
+              <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:21px;line-height:1.1;text-wrap:pretty">{{task.title}}</div>
+              <div style="font-size:14px;line-height:1.5;color:var(--muted);text-wrap:pretty">{{task.desc}}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:0;padding-left:24px;border-left:1px solid var(--line)">
+              <sc-if value="{{hasAc}}">
+                <button onClick="{{toggleAc}}" style="display:flex;align-items:center;gap:6px;align-self:flex-start;height:32px;padding:0 12px;border-radius:9999px;border:none;background:var(--chip);color:var(--paperInk);font:inherit;font-size:13px;font-weight:600;cursor:pointer"><span style="white-space:nowrap">Tiêu chí nghiệm thu ({{acCount}})</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="transform:{{acChevron}};transition:transform 200ms"><path d="m6 9 6 6 6-6"></path></svg></button>
+              </sc-if>
+              <sc-if value="{{noAc}}"><div style="font-size:13px;color:var(--muted);font-weight:450">Chưa có tiêu chí nghiệm thu trên Jira.</div></sc-if>
+              <sc-if value="{{acOpenNow}}">
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <sc-for list="{{acList}}" as="a" hint-placeholder-count="4">
+                    <div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;width:20px;height:20px;border-radius:7px;background:var(--keyBg);color:var(--keyInk);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{a.n}}</span><span>{{a.text}}</span></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+            <sc-if value="{{isLocked}}"><div style="position:absolute;right:-22px;top:-34px;z-index:6;width:120px;height:120px;border-radius:50%;border:5px solid var(--orange);color:var(--orange);background:rgba(255,252,245,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:{{stampT}};opacity:{{stampOp}};transition:{{stampTrans}};font-family:'Hanken Grotesk',sans-serif;pointer-events:none"><div style="font-size:12px;font-weight:600;letter-spacing:.12em;line-height:1">ĐÃ CHỐT</div><div style="font-size:48px;font-weight:600;line-height:.95">{{final}}</div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;line-height:1">ĐIỂM</div></div></sc-if>
+          </div>
+          <div style="position:absolute;left:50%;bottom:36px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:3">
+            <div style="width:46px;height:64px">
+              <sc-if value="{{me.hasCard}}"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{me.value}}" face-up="{{me.faceUp}}" compact="{{true}}" instant="{{me.instant}}" hint-size="46px,64px"></dc-import></sc-if>
+              <sc-if value="{{me.noCard}}"><div style="width:100%;height:100%;border-radius:8px;border:2px dashed rgba(247,241,227,.3)"></div></sc-if>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--cream);background:rgba(255,255,255,.12);padding:3px 10px;border-radius:9999px">Bạn</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showConfetti}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;z-index:31;pointer-events:none;overflow:hidden">{{confettiEl}}</div></sc-if>
+        <sc-if value="{{isConsensus}}" hint-placeholder-val="{{false}}"><div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:32;height:44px;padding:0 20px 0 10px;border-radius:9999px;background:var(--ink);color:var(--bg);display:flex;align-items:center;gap:10px;font-weight:650;font-size:15px;white-space:nowrap"><span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#141414;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>{{consensusText}}</div></sc-if>
+        <sc-if value="{{twistOpen}}" hint-placeholder-val="{{false}}">
+          <div style="position:absolute;inset:0;z-index:35;background:rgba(14,14,14,.8);display:grid;grid-template-columns:280px minmax(0,1fr) 280px;align-items:stretch;padding:0 32px;gap:20px">
+            <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+              <div style="position:absolute;top:0;left:0;right:0;bottom:40px;clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(255,214,120,.45),rgba(255,214,120,0) 95%)"></div>
+              <div style="position:relative;width:92px;height:92px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{tw.low.species}}" state="voted" hint-size="92px,92px"></dc-import></div>
+              <div style="position:relative;width:128px;height:180px;transform:rotate(-6deg)"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{tw.low.v}}" hint-size="128px,180px"></dc-import></div>
+              <div style="position:relative;color:#fff;font-weight:650;font-size:20px">{{tw.low.name}}</div>
+              <div style="position:relative;height:26px;padding:0 12px;border-radius:9999px;background:rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;white-space:nowrap">{{tw.low.label}}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;color:#fff">
+              <span style="height:28px;padding:0 14px;border-radius:9999px;background:var(--accent);color:#141414;font-weight:650;font-size:13px;display:flex;align-items:center">Plot twist</span>
+              <div style="font-weight:650;font-size:32px;line-height:1.13;text-wrap:balance">{{tw.title}}</div>
+              <div style="font-size:16px;font-weight:300;line-height:1.45;color:rgba(255,255,255,.8);max-width:420px;text-wrap:pretty">Mời hai bạn chia sẻ góc nhìn trước, mỗi người khoảng một phút. Khoảng cách lớn thường là chỗ có điều cả nhóm chưa thấy.</div>
+              <div style="display:flex;align-items:center;gap:14px;padding:8px 18px 8px 8px;border-radius:9999px;background:rgba(255,255,255,.08)">
+                <button onClick="{{spin}}" aria-label="Quay chọn người nói trước" style="position:relative;width:60px;height:60px;border:none;padding:0;background:none;cursor:pointer">
+                  <div style="width:60px;height:60px;border-radius:50%;background:conic-gradient(from -90deg,#FFB627 0 50%,#7FA3E6 50% 100%);transform:{{wheelT}};transition:{{wheelTrans}}"></div>
+                  <div style="position:absolute;inset:20px;border-radius:50%;background:#141414"></div>
+                  <div style="position:absolute;left:50%;top:-5px;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid #fff"></div>
+                </button>
+                <div style="text-align:left"><div style="font-size:14px;font-weight:650">{{wheelLabel}}</div><div style="font-size:12px;color:rgba(255,255,255,.7)">Vàng: {{tw.high.name}} · Xanh: {{tw.low.name}}</div></div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <button onClick="{{closeTwist}}" style="height:48px;padding:0 22px;border-radius:9999px;border:none;background:var(--accent);color:#141414;font:inherit;font-weight:650;font-size:15px;cursor:pointer;white-space:nowrap">{{tw.firstLabel}}</button>
+                <button onClick="{{closeTwist}}" style="height:48px;padding:0 20px;border-radius:9999px;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap">Xem bảng kết quả</button>
+              </div>
+            </div>
+            <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+              <div style="position:absolute;top:0;left:0;right:0;bottom:40px;clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(255,214,120,.45),rgba(255,214,120,0) 95%)"></div>
+              <div style="position:relative;width:92px;height:92px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{tw.high.species}}" state="voted" hint-size="92px,92px"></dc-import></div>
+              <div style="position:relative;width:128px;height:180px;transform:rotate(6deg)"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{tw.high.v}}" hint-size="128px,180px"></dc-import></div>
+              <div style="position:relative;color:#fff;font-weight:650;font-size:20px">{{tw.high.name}}</div>
+              <div style="position:relative;height:26px;padding:0 12px;border-radius:9999px;background:rgba(255,255,255,.14);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;white-space:nowrap">{{tw.high.label}}</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{isCountdown}}" hint-placeholder-val="{{false}}"><div style="position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(15,22,41,.28);pointer-events:none">{{countEl}}</div></sc-if>
+      </div>
+
+      <div style="position:relative;height:212px;flex:none">
+        <div style="position:absolute;left:22px;bottom:22px;z-index:20;display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:9999px;background:var(--surface);border:1px solid var(--line)">
+          <sc-for list="{{reacts}}" as="r" hint-placeholder-count="4">
+            <button onClick="{{r.onClick}}" title="{{r.label}}" aria-label="{{r.label}}" style="width:44px;height:44px;border-radius:50%;border:none;background:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:var(--chip)">{{r.e}}</button>
+          </sc-for>
+        </div>
+        <div style="position:absolute;left:30px;bottom:220px;width:40px;height:0;z-index:40;pointer-events:none">{{reactionLayer}}</div>
+
+        <sc-if value="{{showDeck}}" hint-placeholder-val="{{true}}">
+          <div style="position:absolute;inset:0;opacity:{{deckOp}};pointer-events:{{deckPE}};transition:opacity 300ms">
+            <sc-for list="{{deck}}" as="c" hint-placeholder-count="15">
+              <div style="position:absolute;left:{{c.left}};bottom:{{c.bottom}};width:86px;height:122px;transform:{{c.t}};transform-origin:50% 100%;transition:{{c.trans}};z-index:{{c.z}}">
+                <button onClick="{{c.onPick}}" aria-label="{{c.aria}}" style="display:block;width:100%;height:100%;padding:0;border:none;background:none;cursor:pointer;transition:transform 200ms ease-out" style-hover="transform:translateY(-10px)">
+                  <dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{c.v}}" selected="{{c.sel}}" hint-size="86px,122px"></dc-import>
+                </button>
+              </div>
+            </sc-for>
+            <div style="position:absolute;right:24px;bottom:26px;width:100px;text-align:right;font-size:13px;font-weight:600;color:var(--muted);line-height:1.35">{{selText}}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showResults}}" hint-placeholder-val="{{false}}">
+          <div style="position:absolute;left:96px;right:24px;top:14px;bottom:20px;background:var(--soft);border-radius:24px;padding:16px 22px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:28px;align-items:center">
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="display:flex;flex-direction:column">
+                <div style="font-size:13px;font-weight:600;color:var(--muted)">Trung bình</div>
+                <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:40px;line-height:1">{{res.avg}}</div>
+                <div style="font-size:13px;color:var(--muted);font-weight:450">{{res.rangeText}}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="width:54px;height:76px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{res.nearest}}" compact="{{true}}" hint-size="54px,76px"></dc-import></div>
+                <div style="font-size:12px;font-weight:600;color:var(--muted)">gần nhất</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="padding:4px 12px;border-radius:9999px;background:var(--chip);font-weight:600;font-size:13px">Đồng thuận: {{res.levelLabel}}</span>
+                <span style="display:flex;gap:4px"><sc-for list="{{res.dots}}" as="d" hint-placeholder-count="4"><span style="width:10px;height:10px;border-radius:50%;background:{{d.bg}}"></span></sc-for></span>
+                <span style="font-size:13px;color:var(--muted);font-weight:450">{{res.countText}}</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:14px;height:118px">
+                <sc-for list="{{res.dist}}" as="d" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                    <div style="font-size:13px;font-weight:600">{{d.count}}</div>
+                    <div style="width:28px;height:{{d.h}};border-radius:8px 8px 4px 4px;background:{{d.bg}}"></div>
+                    <div style="width:28px;height:40px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{d.v}}" compact="{{true}}" hint-size="28px,40px"></dc-import></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{isRevealed}}">
+              <div style="display:flex;flex-direction:column;gap:10px;width:356px">
+                <div style="font-size:13px;font-weight:600;color:var(--muted)">Điểm chốt · host chọn, có thể khác trung bình</div>
+                <div style="display:flex;gap:6px">
+                  <sc-for list="{{finalChips}}" as="c" hint-placeholder-count="8">
+                    <button onClick="{{c.onClick}}" style="flex:1;height:40px;border-radius:9999px;border:2px solid {{c.bd}};background:{{c.bg}};color:{{c.fg}};font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer;padding:0">{{c.v}}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button onClick="{{revote}}" style="flex:1;height:48px;border-radius:9999px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Bỏ phiếu lại</button>
+                  <button onClick="{{lock}}" style="flex:1.3;height:48px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer" style-active="background:var(--accentDeep)">Chốt {{final}} điểm</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{isLocked}}">
+              <div style="display:flex;flex-direction:column;gap:10px;width:356px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span><span style="font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:16px">{{task.key}} · {{final}} điểm</span></div>
+                <div style="font-size:13px;color:var(--muted);font-weight:450;line-height:1.4">Điểm sẽ được đẩy về Jira khi kết thúc buổi.</div>
+                <button onClick="{{next}}" style="height:48px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;opacity:{{nextOp}}">Task tiếp theo<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="min-height:0;display:flex;flex-direction:column;background:var(--soft);border-radius:24px;margin:12px 16px 16px 0;overflow:hidden">
+      <div style="padding:18px 20px 12px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:16px">Task của buổi</div><div style="font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:16px">{{doneCount}}<span style="color:var(--muted)">/12</span></div></div>
+        <div style="height:10px;border-radius:9999px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{progressW}};background:var(--accent);border-radius:9999px;transition:width 400ms"></div></div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{taskRows}}" as="t" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px;background:{{t.bg}};flex:none">
+            <sc-if value="{{t.isDone}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+            <sc-if value="{{t.isCur}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;border:6px solid var(--accent);box-sizing:border-box"></span></sc-if>
+            <sc-if value="{{t.isTodo}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);box-sizing:border-box"></span></sc-if>
+            <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--muted)">{{t.key}}</div><div style="font-size:14px;font-weight:450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{t.title}}</div></div>
+            <span style="flex:none;min-width:30px;height:28px;padding:0 8px;border-radius:9px;background:{{t.ptsBg}};font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center">{{t.pts}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:none;height:318px;border-top:1px solid var(--line);display:flex;flex-direction:column">
+        <div style="display:flex;gap:2px;margin:12px 12px 0;padding:3px;border-radius:9999px;background:var(--chip)">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+            <button onClick="{{t.onClick}}" style="flex:1;height:30px;border-radius:8px;border:none;background:{{t.bg}};color:var(--ink);font:inherit;font-weight:600;font-size:14px;cursor:pointer">{{t.label}}</button>
+          </sc-for>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+          <sc-if value="{{isQ}}" hint-placeholder-val="{{true}}">
+            <sc-for list="{{questions}}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;gap:10px;flex:none">
+                <div style="flex:none;width:28px;height:28px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{q.species}}" state="voted" hint-size="28px,28px"></dc-import></div>
+                <div style="flex:1;min-width:0;padding:0 0 12px;border-bottom:1px solid var(--line)">
+                  <div style="display:flex;gap:6px;align-items:baseline"><span style="font-size:13px;font-weight:600">{{q.who}}</span><span style="font-size:12px;color:var(--muted)">{{q.time}}</span><sc-if value="{{q.answered}}"><span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--good)">Đã trả lời</span></sc-if></div>
+                  <div style="font-size:13px;line-height:1.55;margin-top:2px;text-wrap:pretty">{{q.text}}</div>
+                </div>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{isR}}" hint-placeholder-val="{{false}}">
+            <sc-for list="{{reasons}}" as="q" hint-placeholder-count="3">
+              <div style="display:flex;gap:10px;flex:none;padding-bottom:12px;border-bottom:1px solid var(--line)">
+                <div style="flex:none;width:24px;height:34px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{q.v}}" compact="{{true}}" hint-size="24px,34px"></dc-import></div>
+                <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">{{q.who}}</div><div style="font-size:13px;line-height:1.55;margin-top:2px">{{q.text}}</div></div>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{isN}}" hint-placeholder-val="{{false}}">
+            <sc-for list="{{notes}}" as="n" hint-placeholder-count="2">
+              <div style="flex:none;background:var(--surface2);border:1px solid var(--line);border-radius:9999px;padding:10px 12px;font-size:13px;line-height:1.55">{{n.text}}<div style="font-size:12px;color:var(--muted);font-weight:450;margin-top:4px">{{n.who}}</div></div>
+            </sc-for>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;padding:10px 12px 12px">
+          <input value="{{input}}" onChange="{{onInput}}" onKeyDown="{{onKey}}" placeholder="{{inputPh}}" style="flex:1;min-width:0;height:44px;border-radius:9999px;border:none;background:var(--field);color:var(--ink);padding:0 18px;font:inherit;font-size:14px;outline:none">
+          <button onClick="{{send}}" aria-label="Gửi" style="flex:none;width:44px;height:44px;border-radius:50%;border:none;background:var(--accent);color:var(--accentInk);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button>
+        </div>
+      </div>
+      <div style="flex:none;height:52px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px;font-size:13px;color:var(--muted);font-weight:450">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>Đang quan sát
+        <div style="width:28px;height:28px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="cat" state="thinking" hint-size="28px,28px"></dc-import></div>
+        <span style="color:var(--ink);font-weight:600">Trang</span>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;top:64px;right:{{menuRight}};z-index:60;width:310px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:none;display:flex;flex-direction:column;gap:6px">
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;padding:0 6px">Hiệu ứng</div>
+      <sc-for list="{{effOpts}}" as="o" hint-placeholder-count="3">
+        <button onClick="{{o.onClick}}" style="display:flex;gap:10px;align-items:flex-start;text-align:left;padding:10px;border-radius:16px;border:2px solid {{o.bd}};background:{{o.bg}};color:var(--ink);font:inherit;cursor:pointer">
+          <span style="flex:none;margin-top:2px;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;box-sizing:border-box"><sc-if value="{{o.sel}}"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink)"></span></sc-if></span>
+          <span><span style="display:block;font-size:14px;font-weight:600">{{o.label}}</span><span style="display:block;font-size:12px;color:var(--muted);font-weight:600;line-height:1.35">{{o.desc}}</span></span>
+        </button>
+      </sc-for>
+      <button onClick="{{toggleSound}}" style="display:flex;align-items:center;justify-content:space-between;padding:0 10px;min-height:48px;border:none;border-top:1px solid var(--line);background:none;font:inherit;color:var(--ink);cursor:pointer;margin-top:4px">
+        <span style="font-size:14px;font-weight:600">Âm thanh</span>
+        <span style="width:46px;height:28px;border-radius:9999px;background:{{soundBg}};position:relative;transition:background 200ms"><span style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transform:{{soundKnob}};transition:transform 200ms"></span></span>
+      </button>
+      <div style="font-size:12px;color:var(--muted);font-weight:600;padding:0 6px;line-height:1.4">Tự chuyển sang Tối giản nếu máy đang bật giảm chuyển động.</div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isMobile}}" hint-placeholder-val="{{false}}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+  <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-weight:600;font-size:13px"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:2px solid var(--ink);box-sizing:border-box;padding:1px"><span style="display:block;width:70%;height:100%;background:var(--ink);border-radius:1px"></span></span></div>
+  <div style="height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px 0 8px">
+    <button onClick="{{copyLink}}" style="flex:1;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 8px;border:none;background:none;color:var(--ink);font:inherit;cursor:pointer;text-align:left">
+      <span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">Sprint 24 · Thanh toán</span>
+      <span style="font-size:12px;font-weight:450;color:var(--muted)">PKR-7Q4M · {{copyLabel}}</span>
+    </button>
+    <div style="display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:9999px;background:var(--chip);font-weight:600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg><span style="font-family:'Hanken Grotesk',sans-serif;font-size:14px;line-height:1;font-variant-numeric:tabular-nums">{{timerText}}</span></div>
+    <button onClick="{{toggleMenu}}" aria-label="Cài đặt hiệu ứng" style="flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface2);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg></button>
+  </div>
+
+  <div style="{{mMembersStyle}}">
+    <sc-for list="{{mSeats}}" as="s" hint-placeholder-count="8">
+      <button onClick="{{s.onTap}}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0;border:none;background:none;color:inherit;font:inherit;min-height:44px;cursor:pointer;opacity:{{s.op}};min-width:0">
+        <div style="position:relative;width:52px;height:52px">
+          <sc-if value="{{s.isInvite}}"><div style="width:100%;height:100%;border-radius:50%;border:2px dashed currentColor;opacity:.6;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg></div></sc-if>
+          <sc-if value="{{s.isPerson}}"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{s.species}}" state="{{s.mstate}}" hint-size="52px,52px"></dc-import></sc-if>
+          <sc-if value="{{s.hasCard}}"><div style="position:absolute;right:-6px;bottom:-2px;width:21px;height:29px;transform:rotate(9deg)"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{s.value}}" face-up="{{s.faceUp}}" compact="{{true}}" instant="{{s.instant}}" hint-size="21px,29px"></dc-import></div></sc-if>
+          <div style="position:absolute;right:-6px;top:-6px;pointer-events:none">{{s.plane}}</div>
+        </div>
+        <div style="font-size:12px;font-weight:600;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{s.name}}</div>
+        <sc-if value="{{s.isSleeping}}"><span style="font-size:11px;font-weight:600;padding:0 7px;border-radius:9999px;background:var(--accent);color:var(--accentInk);line-height:16px;white-space:nowrap">Nhắc</span></sc-if>
+        <sc-if value="{{s.notSleeping}}"><span style="font-size:11px;font-weight:450;line-height:16px;opacity:.75">{{s.mStatus}}</span></sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+<sc-if value="{{isConsensus}}" hint-placeholder-val="{{false}}"><div style="flex:none;align-self:center;margin:8px 0 -2px;height:38px;padding:0 16px 0 8px;border-radius:9999px;background:var(--ink);color:var(--bg);display:flex;align-items:center;gap:8px;font-weight:650;font-size:14px;white-space:nowrap"><span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#141414;display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>{{consensusText}}</div></sc-if>
+  <div style="{{mTaskStyle}}">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-weight:600;font-size:12px;padding:2px 9px;border-radius:9999px;background:var(--keyBg);color:var(--keyInk)">{{task.key}}</span>
+      <span style="font-size:12px;font-weight:450;opacity:.8">{{task.type}} · Vòng {{round}}</span>
+    </div>
+    <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:17px;line-height:1.12;text-wrap:pretty">{{task.title}}</div>
+    <div style="font-size:14px;line-height:1.45;opacity:.82;max-height:{{mDescH}};overflow:hidden">{{task.desc}}</div>
+    <sc-if value="{{hasAc}}">
+      <button onClick="{{toggleAc}}" style="display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:0 14px;border-radius:16px;border:none;background:{{mChipBg}};color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer"><span style="white-space:nowrap">Tiêu chí nghiệm thu ({{acCount}})</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="transform:{{acChevron}};transition:transform 200ms"><path d="m6 9 6 6 6-6"></path></svg></button>
+    </sc-if>
+    <sc-if value="{{acOpenM}}">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{acList}}" as="a" hint-placeholder-count="4">
+          <div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;width:20px;height:20px;border-radius:7px;background:var(--keyBg);color:var(--keyInk);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{a.n}}</span><span>{{a.text}}</span></div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{isLocked}}"><div style="position:absolute;right:10px;top:-14px;width:84px;height:84px;border-radius:50%;border:4px solid var(--orange);color:var(--orange);background:rgba(255,252,245,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:{{stampT}};opacity:{{stampOp}};transition:{{stampTrans}};font-family:'Hanken Grotesk',sans-serif;pointer-events:none"><div style="font-size:10px;font-weight:600;letter-spacing:.1em;line-height:1">ĐÃ CHỐT</div><div style="font-size:34px;font-weight:600;line-height:.95">{{final}}</div><div style="font-size:9px;font-weight:600;letter-spacing:.1em;line-height:1">ĐIỂM</div></div></sc-if>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;position:relative">
+    <sc-if value="{{showDeck}}" hint-placeholder-val="{{true}}">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;opacity:{{deckOp}};pointer-events:{{deckPE}}">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 16px">
+          <span style="font-size:13px;font-weight:600;color:var(--muted)">{{selShort}}</span>
+          <div style="display:flex;gap:2px">
+            <sc-for list="{{reacts}}" as="r" hint-placeholder-count="4">
+              <button onClick="{{r.onClick}}" aria-label="{{r.label}}" style="width:44px;height:44px;border-radius:50%;border:none;background:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">{{r.e}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding:20px 16px 14px;scrollbar-width:none;flex:none">
+          <sc-for list="{{deck}}" as="c" hint-placeholder-count="15">
+            <button onClick="{{c.onPick}}" aria-label="{{c.aria}}" style="flex:none;width:64px;height:90px;padding:0;border:none;background:none;transform:{{c.mt}};transition:{{c.trans}};cursor:pointer">
+              <dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{c.v}}" selected="{{c.sel}}" hint-size="64px,90px"></dc-import>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{showResults}}" hint-placeholder-val="{{false}}">
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:12px 12px 10px;display:flex;flex-direction:column;gap:10px">
+        <div style="flex:none;background:var(--soft);border-radius:24px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+          <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--muted)">Trung bình</div><div style="font-family:'Hanken Grotesk',sans-serif;font-weight:650;font-size:30px;line-height:1">{{res.avg}}</div><div style="font-size:12px;font-weight:450;color:var(--muted)">{{res.rangeText}}</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:40px;height:56px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{res.nearest}}" compact="{{true}}" hint-size="40px,56px"></dc-import></div><span style="font-size:11px;font-weight:600;color:var(--muted)">gần nhất</span></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span style="padding:3px 10px;border-radius:9999px;background:var(--chip);font-weight:600;font-size:12px;white-space:nowrap">{{res.levelLabel}}</span><span style="display:flex;gap:4px"><sc-for list="{{res.dots}}" as="d" hint-placeholder-count="4"><span style="width:9px;height:9px;border-radius:50%;background:{{d.bg}}"></span></sc-for></span></div>
+        </div>
+        <div style="flex:none;background:var(--soft);border-radius:24px;padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted)">Phân bố · {{res.countText}}</div>
+          <sc-for list="{{res.dist}}" as="d" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:10px"><div style="flex:none;width:24px;height:34px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{d.v}}" compact="{{true}}" hint-size="24px,34px"></dc-import></div><div style="flex:1;height:12px;border-radius:9999px;background:var(--chip);overflow:hidden"><div style="height:100%;width:{{d.w}};background:{{d.bg}};border-radius:9999px"></div></div><span style="flex:none;width:18px;text-align:right;font-weight:600;font-size:14px">{{d.count}}</span></div>
+          </sc-for>
+        </div>
+        <div style="flex:none;background:var(--soft);border-radius:24px;padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted)">Lý do</div>
+          <sc-for list="{{reasons}}" as="q" hint-placeholder-count="3">
+            <div style="display:flex;gap:10px"><div style="flex:none;width:22px;height:31px"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{q.v}}" compact="{{true}}" hint-size="22px,31px"></dc-import></div><div style="flex:1;min-width:0;font-size:13px;line-height:1.5"><span style="font-weight:600">{{q.who}}</span> · {{q.text}}</div></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{isRevealed}}">
+          <div style="flex:none;background:var(--soft);border-radius:24px;padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:12px;font-weight:600;color:var(--muted)">Điểm chốt</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <sc-for list="{{finalChips}}" as="c" hint-placeholder-count="8">
+                <button onClick="{{c.onClick}}" style="height:44px;border-radius:9999px;border:2px solid {{c.bd}};background:{{c.bg}};color:{{c.fg}};font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;cursor:pointer;padding:0">{{c.v}}</button>
+              </sc-for>
+            </div>
+            <button onClick="{{revote}}" style="height:48px;border-radius:16px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Bỏ phiếu lại</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <div style="position:absolute;left:30px;bottom:150px;width:40px;height:0;z-index:40;pointer-events:none">{{reactionLayer}}</div>
+  </div>
+
+  <div style="flex:none;display:flex;gap:10px;padding:10px 16px 26px;border-top:1px solid var(--line);background:var(--surface)">
+    <button onClick="{{openSheet}}" aria-label="Danh sách task, câu hỏi, ghi chú" style="flex:none;height:56px;padding:0 14px;border-radius:9999px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);display:flex;align-items:center;gap:8px;font:inherit;font-weight:600;cursor:pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h.01"></path><path d="M3 18h.01"></path><path d="M3 6h.01"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M8 6h13"></path></svg>
+      <span style="font-family:'Hanken Grotesk',sans-serif;font-size:14px;line-height:1">{{doneCount}}/12</span>
+    </button>
+    <button onClick="{{mPrimary.action}}" style="flex:1;height:56px;border-radius:9999px;border:none;background:var(--accent);color:var(--accentInk);font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:16px;cursor:pointer;opacity:{{mPrimary.op}}" style-active="background:var(--accentDeep)">{{mPrimary.label}}</button>
+  </div>
+
+  <sc-if value="{{showConfetti}}" hint-placeholder-val="{{false}}"><div style="position:absolute;left:0;right:0;top:0;height:560px;z-index:45;pointer-events:none;overflow:hidden">{{confettiElM}}</div></sc-if>
+
+  <sc-if value="{{twistOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;inset:0;z-index:55;background:rgba(14,14,14,.88);display:flex;flex-direction:column;align-items:center;padding:72px 20px 28px;gap:14px;color:#fff;text-align:center">
+      <span style="height:28px;padding:0 14px;border-radius:9999px;background:var(--accent);color:#141414;font-weight:650;font-size:13px;display:flex;align-items:center">Plot twist</span>
+      <div style="font-weight:650;font-size:24px;line-height:1.15;text-wrap:balance">{{tw.title}}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;flex:1;min-height:0">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;padding-bottom:8px">
+          <div style="position:absolute;inset:0 0 30px;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(255,214,120,.42),rgba(255,214,120,0) 95%)"></div>
+          <div style="position:relative;width:64px;height:64px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{tw.low.species}}" state="voted" hint-size="64px,64px"></dc-import></div>
+          <div style="position:relative;width:84px;height:118px;transform:rotate(-6deg)"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{tw.low.v}}" hint-size="84px,118px"></dc-import></div>
+          <div style="position:relative;font-weight:650;font-size:16px">{{tw.low.name}}</div>
+          <div style="position:relative;font-size:12px;font-weight:600;color:rgba(255,255,255,.75)">{{tw.low.label}}</div>
+        </div>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;padding-bottom:8px">
+          <div style="position:absolute;inset:0 0 30px;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(255,214,120,.42),rgba(255,214,120,0) 95%)"></div>
+          <div style="position:relative;width:64px;height:64px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{tw.high.species}}" state="voted" hint-size="64px,64px"></dc-import></div>
+          <div style="position:relative;width:84px;height:118px;transform:rotate(6deg)"><dc-import name="CardV3" style="display:block;width:100%;height:100%" value="{{tw.high.v}}" hint-size="84px,118px"></dc-import></div>
+          <div style="position:relative;font-weight:650;font-size:16px">{{tw.high.name}}</div>
+          <div style="position:relative;font-size:12px;font-weight:600;color:rgba(255,255,255,.75)">{{tw.high.label}}</div>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:300;line-height:1.45;color:rgba(255,255,255,.8)">Mời hai bạn chia sẻ trước, mỗi người khoảng một phút.</div>
+      <button onClick="{{spin}}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 18px 6px 6px;border-radius:9999px;border:none;background:rgba(255,255,255,.1);color:#fff;font:inherit;cursor:pointer">
+        <span style="position:relative;width:40px;height:40px;flex:none"><span style="display:block;width:40px;height:40px;border-radius:50%;background:conic-gradient(from -90deg,#FFB627 0 50%,#7FA3E6 50% 100%);transform:{{wheelT}};transition:{{wheelTrans}}"></span><span style="position:absolute;inset:13px;border-radius:50%;background:#141414"></span></span>
+        <span style="font-size:14px;font-weight:650">{{wheelLabel}}</span>
+      </button>
+      <button onClick="{{closeTwist}}" style="width:100%;height:56px;border-radius:9999px;border:none;background:var(--accent);color:#141414;font:inherit;font-weight:650;font-size:17px;cursor:pointer">{{tw.firstLabel}}</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{isCountdown}}" hint-placeholder-val="{{false}}"><div style="position:absolute;left:0;right:0;top:0;bottom:92px;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(15,22,41,.3);pointer-events:none">{{countElM}}</div></sc-if>
+
+  <sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;top:100px;right:12px;left:12px;z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:none;display:flex;flex-direction:column;gap:6px">
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:14px;padding:0 6px">Hiệu ứng</div>
+      <sc-for list="{{effOpts}}" as="o" hint-placeholder-count="3">
+        <button onClick="{{o.onClick}}" style="display:flex;gap:10px;align-items:flex-start;text-align:left;padding:10px;min-height:44px;border-radius:16px;border:2px solid {{o.bd}};background:{{o.bg}};color:var(--ink);font:inherit;cursor:pointer">
+          <span style="flex:none;margin-top:2px;width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;box-sizing:border-box"><sc-if value="{{o.sel}}"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink)"></span></sc-if></span>
+          <span><span style="display:block;font-size:14px;font-weight:600">{{o.label}}</span><span style="display:block;font-size:12px;color:var(--muted);font-weight:600">{{o.desc}}</span></span>
+        </button>
+      </sc-for>
+      <button onClick="{{toggleSound}}" style="display:flex;align-items:center;justify-content:space-between;padding:0 10px;min-height:48px;border:none;border-top:1px solid var(--line);background:none;font:inherit;color:var(--ink);cursor:pointer;margin-top:4px">
+        <span style="font-size:14px;font-weight:600">Âm thanh</span>
+        <span style="width:46px;height:28px;border-radius:9999px;background:{{soundBg}};position:relative"><span style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transform:{{soundKnob}};transition:transform 200ms"></span></span>
+      </button>
+    </div>
+  </sc-if>
+
+  <div style="position:absolute;inset:0;z-index:70;pointer-events:{{sheetPE}}">
+    <div onClick="{{closeSheet}}" style="position:absolute;inset:0;background:var(--backdrop);opacity:{{sheetBackOp}};transition:opacity 250ms"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:74%;background:var(--surface);border-radius:24px 24px 0 0;transform:{{sheetT}};transition:{{sheetTrans}};display:flex;flex-direction:column">
+      <button onClick="{{closeSheet}}" aria-label="Thu gọn" style="flex:none;height:30px;border:none;background:none;display:flex;justify-content:center;align-items:center;cursor:pointer"><span style="width:44px;height:5px;border-radius:9999px;background:var(--line)"></span></button>
+      <div style="display:flex;gap:2px;margin:0 12px 8px;padding:3px;border-radius:9999px;background:var(--chip)">
+        <sc-for list="{{sheetTabs}}" as="t" hint-placeholder-count="3">
+          <button onClick="{{t.onClick}}" style="flex:1;height:40px;border-radius:9px;border:none;background:{{t.bg}};color:var(--ink);font:inherit;font-weight:600;font-size:14px;cursor:pointer">{{t.label}}</button>
+        </sc-for>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:6px 14px 12px;display:flex;flex-direction:column;gap:8px">
+        <sc-if value="{{sheetIsTasks}}">
+          <div style="flex:none;height:10px;border-radius:9999px;background:var(--chip);overflow:hidden;margin:0 4px 6px"><div style="height:100%;width:{{progressW}};background:var(--accent);border-radius:9999px"></div></div>
+          <sc-for list="{{taskRows}}" as="t" hint-placeholder-count="8">
+            <div style="flex:none;display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:44px;border-radius:16px;background:{{t.bg}}">
+              <sc-if value="{{t.isDone}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></sc-if>
+              <sc-if value="{{t.isCur}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;border:6px solid var(--accent);box-sizing:border-box"></span></sc-if>
+              <sc-if value="{{t.isTodo}}"><span style="flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);box-sizing:border-box"></span></sc-if>
+              <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--muted)">{{t.key}}</div><div style="font-size:14px;font-weight:450;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{t.title}}</div></div>
+              <span style="flex:none;min-width:30px;height:28px;padding:0 8px;border-radius:9px;background:{{t.ptsBg}};font-family:'Hanken Grotesk',sans-serif;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center">{{t.pts}}</span>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{sheetIsQ}}">
+          <sc-for list="{{questions}}" as="q" hint-placeholder-count="3">
+            <div style="display:flex;gap:10px;flex:none">
+              <div style="flex:none;width:28px;height:28px"><dc-import name="Mascot" style="display:block;width:100%;height:100%" species="{{q.species}}" state="voted" hint-size="28px,28px"></dc-import></div>
+              <div style="flex:1;min-width:0;padding:0 0 12px;border-bottom:1px solid var(--line)">
+                <div style="display:flex;gap:6px;align-items:baseline"><span style="font-size:13px;font-weight:600">{{q.who}}</span><span style="font-size:12px;color:var(--muted)">{{q.time}}</span><sc-if value="{{q.answered}}"><span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--good)">Đã trả lời</span></sc-if></div>
+                <div style="font-size:14px;line-height:1.55;margin-top:2px">{{q.text}}</div>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{sheetIsN}}">
+          <sc-for list="{{notes}}" as="n" hint-placeholder-count="2">
+            <div style="flex:none;background:var(--surface2);border:1px solid var(--line);border-radius:9999px;padding:10px 12px;font-size:14px;line-height:1.55">{{n.text}}<div style="font-size:12px;color:var(--muted);font-weight:450;margin-top:4px">{{n.who}}</div></div>
+          </sc-for>
+        </sc-if>
+      </div>
+      <sc-if value="{{sheetHasInput}}">
+        <div style="flex:none;display:flex;gap:8px;padding:10px 12px 28px;border-top:1px solid var(--line)">
+          <input value="{{input}}" onChange="{{onInput}}" onKeyDown="{{onKey}}" placeholder="{{inputPh}}" style="flex:1;min-width:0;height:48px;border-radius:9999px;border:none;background:var(--field);color:var(--ink);padding:0 18px;font:inherit;font-size:13px;outline:none">
+          <button onClick="{{send}}" aria-label="Gửi" style="flex:none;width:48px;height:48px;border-radius:50%;border:none;background:var(--accent);color:var(--accentInk);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg></button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;round&quot;,&quot;long&quot;],&quot;default&quot;:&quot;round&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;scene&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;countdown&quot;,&quot;flipping&quot;,&quot;consensus&quot;,&quot;twist&quot;,&quot;results&quot;,&quot;locked&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#FFB627&quot;,&quot;#FF8A4C&quot;,&quot;#FFD23F&quot;],&quot;default&quot;:&quot;#FFB627&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;felt&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2F4B7C&quot;,&quot;#1F5E4A&quot;,&quot;#3B3F7A&quot;],&quot;default&quot;:&quot;#2F4B7C&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const NUMS = ['0','1','2','3','5','8','13','21'];
+const SPECIAL = { coffee:'Cần nghỉ', question:'Chưa rõ', bug:'Mùi bug', bomb:'Rủi ro cao', puzzle:'Phụ thuộc', infinity:'Quá lớn', shrug:'Không biết' };
+const DECK = NUMS.concat(Object.keys(SPECIAL));
+const TASKS = [
+  { key:'PAY-138', title:'Chuẩn hóa mã lỗi cổng thanh toán', base:'3' },
+  { key:'PAY-139', title:'Lưu lịch sử giao dịch thất bại', base:'5' },
+  { key:'PAY-140', title:'Màn hình chọn phương thức thanh toán', base:'5' },
+  { key:'PAY-141', title:'Webhook xác nhận thanh toán MoMo', base:'8' },
+  { key:'PAY-142', title:'Tích hợp thanh toán VNPay', base:'5', type:'Story',
+    desc:'Cho phép khách thanh toán đơn hàng qua cổng VNPay (QR và thẻ ATM nội địa). Xử lý callback IPN, cập nhật trạng thái đơn và hiển thị kết quả cho người dùng.',
+    ac:['Tạo URL thanh toán có chữ ký HMAC-SHA512 đúng chuẩn VNPay','Xử lý IPN idempotent, không cập nhật một đơn hai lần','Quá 15 phút chưa thanh toán thì đơn chuyển "Đã hủy"','Màn kết quả thành công/thất bại hiển thị mã giao dịch'] },
+  { key:'PAY-143', title:'Hoàn tiền một phần cho đơn đã thanh toán', base:'8', desc:'Admin hoàn một phần giá trị đơn qua đúng cổng đã thanh toán; ghi nhận lý do và người thao tác.', ac:['Không hoàn vượt số tiền đã thanh toán','Lưu lý do hoàn tiền bắt buộc'] },
+  { key:'PAY-144', title:'Đối soát giao dịch cuối ngày', base:'5', desc:'Job chạy lúc 23:30, so khớp giao dịch nội bộ với file đối soát từ cổng và xuất báo cáo chênh lệch.' },
+  { key:'PAY-145', title:'Gửi email hóa đơn điện tử', base:'3', type:'Task', desc:'Sau khi thanh toán thành công, gửi email kèm hóa đơn PDF cho khách.' },
+  { key:'PAY-146', title:'Giới hạn số lần thử lại thanh toán', base:'2', desc:'Chặn tạo giao dịch mới sau 5 lần thất bại liên tiếp trong 10 phút.' },
+  { key:'PAY-147', title:'Log kiểm toán thao tác admin', base:'3', type:'Task', desc:'Ghi lại mọi thao tác hoàn tiền, hủy đơn của admin kèm thời gian và IP.' },
+  { key:'PAY-148', title:'Trang trạng thái đơn hàng cho khách', base:'5', desc:'Trang công khai theo mã đơn, hiển thị tiến trình thanh toán và giao hàng.' },
+  { key:'PAY-149', title:'Cảnh báo giao dịch bất thường', base:'8', desc:'Gửi cảnh báo Slack khi tỉ lệ thanh toán thất bại vượt 15% trong 5 phút.' }
+];
+const OTHERS = [
+  { id:'tuan', name:'Tuấn', species:'capybara' },
+  { id:'hamy', name:'Hà My', species:'robot' },
+  { id:'khoa', name:'Khoa', species:'dino' },
+  { id:'linh', name:'Linh', species:'owl' },
+  { id:'phuc', name:'Phúc', species:'bunny' },
+  { id:'duc', name:'Đức', species:'koala' }
+];
+const SEAT_A = [[-407,112],[-454,-58],[-235,-195],[235,-195],[454,-58],[407,112]];
+const SLOT_A = [[-250,72],[-266,-18],[-212,-106],[212,-106],[266,-18],[250,72]];
+const SLOT_ROT = [-9,-5,-7,7,5,9];
+const THEMES = {
+  light: { '--bg':'#FFFFFF','--surface':'#FFFFFF','--surface2':'#F3F3F3','--soft':'#F3F3F3','--field':'#ECECEC','--ink':'#141414','--muted':'#707070','--line':'#E0E0E0','--chip':'#EAEAEA','--felt':'#2F4B7C','--felt2':'#2F4B7C','--rim':'#ECECEC','--rim2':'#E0E0E0','--paper':'#FFFFFF','--paperInk':'#141414','--accent':'#FFB627','--accentDeep':'#E9A20F','--accentInk':'#141414','--orange':'#F26A2E','--good':'#1F9D55','--keyBg':'#EDEDED','--keyInk':'#141414','--rowCur':'#FFF4DB','--backdrop':'rgba(20,20,20,.4)','--cream':'#F7F1E3','--noteBg':'#FFFFFF','--justBg':'#E4F5EA' },
+  dark: { '--bg':'#141414','--surface':'#141414','--surface2':'#1F1F1F','--soft':'#1F1F1F','--field':'#262626','--ink':'#F5F5F5','--muted':'#A3A3A3','--line':'#2E2E2E','--chip':'#2A2A2A','--felt':'#27406B','--felt2':'#27406B','--rim':'#262626','--rim2':'#2E2E2E','--paper':'#1F1F1F','--paperInk':'#F5F5F5','--accent':'#FFC043','--accentDeep':'#E0A52C','--accentInk':'#141414','--orange':'#FF8A4C','--good':'#34B860','--keyBg':'#2A2A2A','--keyInk':'#F5F5F5','--rowCur':'#2B261A','--backdrop':'rgba(0,0,0,.6)','--cream':'#F7F1E3','--noteBg':'#1F1F1F','--justBg':'#173322' }
+};
+const initMem = () => ({ tuan:{st:'voted'}, hamy:{st:'voted'}, khoa:{st:'voted'}, linh:{st:'thinking'}, phuc:{st:'sleeping'}, duc:{st:'away'} });
+const freshMem = () => ({ tuan:{st:'thinking'}, hamy:{st:'thinking'}, khoa:{st:'thinking'}, linh:{st:'thinking'}, phuc:{st:'thinking'}, duc:{st:'away'} });
+const up = v => NUMS[Math.min(NUMS.indexOf(v)+1, NUMS.length-1)];
+const down = v => NUMS[Math.max(NUMS.indexOf(v)-1, 0)];
+const lbl = v => v == null ? '' : (NUMS.includes(v) ? v + ' điểm' : SPECIAL[v]);
+const short = v => v == null ? '' : (NUMS.includes(v) ? v + ' điểm' : SPECIAL[v]);
+const fmt = n => (Math.round(n*10)/10).toString().replace('.', ',');
+const h = React.createElement;
+const REASONS = [
+  { who:'Hà My', v:'8', text:'IPN cần retry và khóa idempotent, phần test tích hợp tốn công.' },
+  { who:'Phúc', v:'3', text:'VNPay có SDK mẫu, phần ký HMAC dùng lại từ PAY-141.' },
+  { who:'Tuấn', v:'5', text:'Độ phức tạp tương đương webhook MoMo.' }
+];
+const CONF = Array.from({ length: 38 }, (_, i) => ({ x: (i * 37) % 100, y: 10 + (i * 53) % 300, r: (i * 47) % 180, c: ['#FFB627','#F26A2E','#5CC8C2','#A68BFF','#7BC86C','#FF9DBB'][i % 6], round: i % 3 === 0, d: (i % 7) * 60 }));
+
+class Component extends DCLogic {
+  state = {
+    phase:'voting', sel:null, mem:initMem(), taskIdx:4, round:1, done:{0:'3',1:'5',2:'5',3:'8'},
+    count:null, revealOrder:[], flipped:0, final:null, stamp:false,
+    effects:'full', sound:true, menu:false, acOpen:null, sheet:false, sheetTab:'tasks', tab:'q',
+    questions:[
+      { who:'Tuấn', species:'capybara', text:'Task này gồm cả trả góp qua VNPay không, hay tách riêng?', time:'3 phút', answered:false },
+      { who:'Linh', species:'owl', text:'Đã có tài khoản sandbox VNPay cho môi trường test chưa?', time:'5 phút', answered:true },
+      { who:'Trang · quan sát', species:'cat', text:'Nếu server mình trả lỗi khi nhận IPN thì VNPay có gọi lại không?', time:'vừa xong', answered:false }
+    ],
+    notes:[ { text:'Dùng lại module ký HMAC đã viết ở PAY-141.', who:'Hà My' }, { text:'Hỏi BA: thời gian hết hạn 15 phút đã chốt chưa?', who:'Khoa' } ],
+    input:'', reactions:[], planes:{}, timer:102, copied:false, twist:false, twistOpen:false, wheelRot:0, chosen:null, spinning:false, justDone:null
+  };
+  componentDidMount() {
+    this.timers = []; this.token = 1;
+    if (this.props.scene) { this.applyScene(this.props.scene); return; }
+    const tk = this.token;
+    this.later(() => { if (this.token === tk) this.setMem('linh','voted'); }, 7000);
+    this.tick = setInterval(() => { if (this.state.phase === 'voting' && this.state.timer > 0) this.setState(s => ({ timer: s.timer - 1 })); }, 1000);
+    try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) this.setState({ effects:'minimal' }); } catch (e) {}
+  }
+  applyScene(sc) {
+    const mem = { tuan:{st:'voted'}, hamy:{st:'voted'}, khoa:{st:'voted'}, linh:{st:'voted'}, phuc:{st:'voted'}, duc:{st:'away'} };
+    const base = { mem, sel:'5', revealOrder:['me','tuan','hamy','khoa','linh','phuc'], timer:0 };
+    const m = {
+      countdown: { phase:'countdown', count:2, flipped:0 },
+      flipping: { phase:'revealing', flipped:3 },
+      consensus: { phase:'revealed', round:2, flipped:6, final:'5' },
+      twist: { phase:'revealed', twist:true, twistOpen:true, flipped:6, final:'5' },
+      results: { phase:'revealed', flipped:6, final:'5', tab:'r' },
+      locked: { phase:'locked', flipped:6, final:'5', stamp:true, done:{ 0:'3',1:'5',2:'5',3:'8',4:'5' }, justDone:4 }
+    }[sc];
+    if (m) this.setState({ ...base, ...m });
+  }
+  componentWillUnmount() { (this.timers || []).forEach(clearTimeout); clearInterval(this.tick); }
+  later(fn, ms) { (this.timers = this.timers || []).push(setTimeout(fn, ms)); }
+  setMem(id, st) { this.setState(s => (s.phase !== 'voting' || s.mem[id].st === 'away') ? null : { mem: { ...s.mem, [id]: { st } } }); }
+  voteOf(id) {
+    const s = this.state;
+    if (id === 'me') return s.sel;
+    if (s.twist && s.taskIdx === 4) return { tuan:'5', hamy:'13', khoa:'5', linh:'5', phuc:'2' }[id];
+    const base = TASKS[s.taskIdx].base;
+    if (s.taskIdx === 4 && s.round === 1) return { tuan:'5', hamy:'8', khoa:'5', linh:'5', phuc:'3' }[id];
+    if (s.round > 1) return base;
+    return { tuan:base, hamy:up(base), khoa:base, linh:base, phuc:down(base) }[id];
+  }
+  calc(order) {
+    const vals = order.map(id => this.voteOf(id)).filter(v => v != null);
+    const counts = {}; vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
+    let mode = null, mc = 0; Object.keys(counts).forEach(k => { if (counts[k] > mc) { mc = counts[k]; mode = k; } });
+    const nums = vals.filter(v => NUMS.includes(v)).map(Number);
+    if (!nums.length) return { vals, counts, mode, avg:null, nearest:null, level:{ n:1, label:'Chưa rõ' } };
+    const avg = nums.reduce((a,b) => a+b, 0) / nums.length;
+    const nearest = NUMS.reduce((b, v) => { const dv = Math.abs(+v-avg), db = Math.abs(+b-avg); return (dv < db || (dv === db && +v > +b)) ? v : b; }, NUMS[0]);
+    const min = Math.min(...nums), max = Math.max(...nums);
+    const diff = NUMS.indexOf(String(max)) - NUMS.indexOf(String(min));
+    const level = diff === 0 ? { n:4, label:'Tuyệt đối' } : diff <= 1 ? { n:3, label:'Cao' } : diff <= 2 ? { n:2, label:'Vừa phải' } : { n:1, label:'Thấp' };
+    return { vals, counts, mode, avg, nearest, min, max, level };
+  }
+  pick(v) { if (this.state.phase !== 'voting') return; this.setState(s => ({ sel: s.sel === v ? null : v })); }
+  flip() {
+    const s = this.state;
+    if (s.phase !== 'voting') return;
+    const order = ['me'].concat(OTHERS.map(o => o.id)).filter(id => id === 'me' ? s.sel != null : s.mem[id].st === 'voted');
+    if (!order.length) return;
+    this.token++;
+    const fin = () => { const r = this.calc(order); this.setState({ phase:'revealed', flipped:order.length, final:r.nearest || '5', twistOpen: r.level.n === 1 }); };
+    if (s.effects === 'minimal') { this.setState({ revealOrder:order, phase:'revealing', flipped:order.length }); this.later(fin, 50); return; }
+    this.setState({ phase:'countdown', count:3, revealOrder:order, flipped:0, menu:false });
+    this.later(() => this.setState({ count:2 }), 650);
+    this.later(() => this.setState({ count:1 }), 1300);
+    this.later(() => {
+      this.setState({ phase:'revealing', count:null });
+      if (this.state.effects === 'full') {
+        order.forEach((_, i) => this.later(() => this.setState({ flipped:i+1 }), i*150));
+        this.later(fin, order.length*150 + 650);
+      } else { this.setState({ flipped:order.length }); this.later(fin, 700); }
+    }, 1950);
+  }
+  startRound() {
+    const tk = ++this.token;
+    [['tuan',1200],['khoa',2000],['hamy',2600],['linh',3800],['phuc',5600]].forEach(([id, ms]) => this.later(() => { if (this.token === tk) this.setMem(id, 'voted'); }, ms));
+  }
+  reset(extra) { this.setState({ phase:'voting', sel:null, flipped:0, revealOrder:[], final:null, stamp:false, timer:120, mem:freshMem(), planes:{}, twist:false, twistOpen:false, justDone:null, chosen:null, tab: this.state.tab === 'r' ? 'q' : this.state.tab, ...extra }); this.startRound(); }
+  revote() { this.reset({ round: this.state.round + 1 }); }
+  lock() {
+    const s = this.state; if (s.phase !== 'revealed') return;
+    this.setState({ phase:'locked', done:{ ...s.done, [s.taskIdx]: s.final }, stamp: s.effects === 'minimal', justDone: s.taskIdx, twistOpen:false });
+    this.later(() => this.setState({ stamp:true }), 40);
+  }
+  next() { if (this.state.taskIdx >= TASKS.length - 1) return; this.reset({ taskIdx: this.state.taskIdx + 1, round:1, acOpen:null }); }
+  poke(id) {
+    const s = this.state; if (s.phase !== 'voting' || s.mem[id].st !== 'sleeping') return;
+    const tk = this.token;
+    this.setState({ planes: { ...s.planes, [id]: Date.now() } });
+    this.later(() => this.setMem(id, 'thinking'), 750);
+    this.later(() => { if (this.token === tk) this.setMem(id, 'voted'); }, 3400);
+  }
+  react(e) {
+    const id = Date.now() + Math.random();
+    this.setState(s => ({ reactions: s.reactions.concat([{ id, e, x: Math.round(Math.random()*30) - 10 }]) }));
+    this.later(() => this.setState(s => ({ reactions: s.reactions.filter(r => r.id !== id) })), 1600);
+  }
+  send() {
+    const s = this.state; const text = s.input.trim(); if (!text) return;
+    const tabNow = (s.tab === 'r' && !r) ? 'q' : s.tab;
+    const target = s.sheet ? s.sheetTab : s.tab;
+    const people = { me:{ name:'Bạn', species:'fox' } }; OTHERS.forEach(o => people[o.id] = o);
+    let tw = { low:{}, high:{}, title:'', firstLabel:'' };
+    if (r && r.avg != null && r.min !== r.max) {
+      const ids = s.revealOrder.filter(id => NUMS.includes(this.voteOf(id)));
+      const lo = people[ids.find(id => +this.voteOf(id) === r.min)], hi = people[ids.find(id => +this.voteOf(id) === r.max)];
+      tw = { low:{ ...lo, v:String(r.min), label:'Thấp nhất · ' + r.min + ' điểm' }, high:{ ...hi, v:String(r.max), label:'Cao nhất · ' + r.max + ' điểm' },
+        title: hi.name + ' và ' + lo.name + ' nhìn task này rất khác nhau.', firstLabel: (s.chosen === 'low' ? lo.name : hi.name) + ' nói trước' };
+    }
+    const staticFx = !!p.scene;
+    const showConfetti = !!(r && r.level.n === 4 && !minimal);
+    const confetti = (hh) => h('div', { style:{ position:'absolute', inset:0 } }, CONF.map((c, i) => h('div', { key:i, style:{ position:'absolute', left:c.x + '%', top: (c.y * hh) + 'px', width: c.round ? 9 : 8, height: c.round ? 9 : 15, borderRadius: c.round ? '50%' : 3, background:c.c, transform:'rotate(' + c.r + 'deg)', animation: staticFx ? 'none' : 'ppConf 2s ease-out ' + c.d + 'ms forwards', opacity: staticFx ? 1 : 0 } })));
+    if (target === 'n') this.setState({ notes: s.notes.concat([{ text, who:'Minh Anh' }]), input:'' });
+    else this.setState({ questions: s.questions.concat([{ who:'Minh Anh', species:'fox', text, time:'vừa xong', answered:false }]), input:'' });
+  }
+  copyLink() {
+    try { navigator.clipboard && navigator.clipboard.writeText('https://planningpoker.app/r/PKR-7Q4M'); } catch (e) {}
+    this.setState({ copied:true }); this.later(() => this.setState({ copied:false }), 1600);
+  }
+  planeEl(key) {
+    return h('div', { key, style:{ animation: this.state.effects === 'minimal' ? 'ppFade .8s ease-out forwards' : 'ppPlane .85s ease-out forwards' } },
+      h('svg', { width:28, height:28, viewBox:'0 0 24 24', fill:'#FFFCF5', stroke:'#1F2A44', strokeWidth:1.8, strokeLinejoin:'round', strokeLinecap:'round' },
+        h('path', { d:'m22 2-7 20-4-9-9-4Z' }), h('path', { d:'M22 2 11 13', fill:'none' })));
+  }
+  renderVals() {
+    const s = this.state, p = this.props;
+    const theme = p.theme === 'dark' ? 'dark' : 'light';
+    const layout = p.layout === 'long' ? 'long' : 'round';
+    const device = p.device === 'mobile' ? 'mobile' : 'desktop';
+    const vars = { ...THEMES[theme] };
+    if (p.accent) vars['--accent'] = p.accent;
+    if (p.felt) { vars['--felt'] = p.felt; vars['--felt2'] = p.felt; }
+    const rootStyle = { ...vars, position:'relative', width:'100%', height:'100%', overflow:'hidden', background:'var(--bg)', color:'var(--ink)', fontFamily:"'Hanken Grotesk',sans-serif" };
+    const minimal = s.effects === 'minimal';
+    const task = { type:'Story', desc:'', ...TASKS[s.taskIdx] };
+    const ac = task.ac || [];
+    const acOpenNow = ac.length > 0 && (s.acOpen == null ? layout === 'long' : s.acOpen);
+    const acOpenM = ac.length > 0 && !!s.acOpen;
+    const acChev = (device === 'mobile' ? acOpenM : acOpenNow) ? 'rotate(180deg)' : 'rotate(0deg)';
+    const reveal = ['revealing','revealed','locked'].includes(s.phase);
+    const revealed = s.revealOrder.slice(0, s.flipped);
+    const r = (s.phase === 'revealed' || s.phase === 'locked') ? this.calc(s.revealOrder) : null;
+    const celebrate = !!(r && r.level.n >= 3);
+
+    const seats = OTHERS.map((o, i) => {
+      const st = s.mem[o.id].st, voted = st === 'voted';
+      const v = voted ? this.voteOf(o.id) : null;
+      const upF = revealed.includes(o.id);
+      const mstate = voted ? ((celebrate && upF && v === r.mode) ? 'celebrating' : 'voted') : st;
+      const status = st === 'away' ? 'Vắng' : st === 'sleeping' ? 'Ngủ gật' : st === 'thinking' ? (reveal ? 'Chưa chọn' : 'Đang nghĩ…') : (upF ? lbl(v) : 'Đã chọn');
+      const mStatus = st === 'away' ? 'Vắng' : st === 'thinking' ? (reveal ? 'Chưa chọn' : 'Đang nghĩ') : (upF ? short(v) : 'Đã chọn');
+      const pk = s.planes[o.id];
+      return {
+        id:o.id, name:o.name, species:o.species, mstate, status, mStatus,
+        isSleeping: st === 'sleeping', notSleeping: st !== 'sleeping',
+        hasCard: voted, noCard: !voted && st !== 'away', value: v || '5', faceUp: upF, instant: minimal,
+        op: st === 'away' ? 0.45 : 1, cursor: st === 'sleeping' ? 'pointer' : 'default',
+        onPoke: () => this.poke(o.id), onTap: () => this.poke(o.id), tip: st === 'sleeping' ? 'Ném máy bay giấy để nhắc chọn bài' : o.name,
+        plane: pk ? this.planeEl(pk) : null,
+        left:`calc(50% + ${SEAT_A[i][0]}px)`, top:`calc(48% + ${SEAT_A[i][1]}px)`,
+        slotLeft:`calc(50% + ${SLOT_A[i][0]}px)`, slotTop:`calc(48% + ${SLOT_A[i][1]}px)`,
+        slotT:`translate(-50%,-50%) rotate(${SLOT_ROT[i]}deg)`, slotRotT:`rotate(${SLOT_ROT[i]*0.5}deg)`,
+        isPerson:true, isInvite:false
+      };
+    });
+    const meUp = revealed.includes('me');
+    const me = { hasCard: s.sel != null, noCard: s.sel == null, value: s.sel || '5', faceUp: meUp, instant: minimal };
+    const mSeats = seats.concat([
+      { name:'Bạn', species:'fox', mstate: s.sel ? ((celebrate && meUp && s.sel === r.mode) ? 'celebrating' : 'voted') : 'thinking',
+        mStatus: s.sel ? (meUp ? short(s.sel) : 'Đã chọn') : 'Chọn bài', isSleeping:false, notSleeping:true,
+        hasCard: s.sel != null, value: s.sel || '5', faceUp: meUp, instant: minimal, op:1, onTap: () => {}, plane:null, isPerson:true, isInvite:false },
+      { name:'Mời', mStatus: s.copied ? 'Đã chép' : 'Chép link', isSleeping:false, notSleeping:true, hasCard:false, op:1, onTap: () => this.copyLink(), plane:null, isPerson:false, isInvite:true, species:'cat', mstate:'thinking' }
+    ]);
+
+    const trans = minimal ? 'none' : 'transform 300ms cubic-bezier(.3,.7,.3,1.3), bottom 300ms cubic-bezier(.3,.7,.3,1.3)';
+    const deck = DECK.map((v, i) => {
+      const k = i - 7, sel = s.sel === v;
+      return { v, sel, z:i, trans, aria: lbl(v), onPick: () => this.pick(v),
+        left:`calc(50% + ${k*54 - 43}px)`, bottom:`${22 - k*k + (sel ? 34 : 0)}px`, t:`rotate(${k*3.2}deg)`,
+        mt: sel ? 'translateY(-16px)' : 'translateY(0)' };
+    });
+
+    let res = { avg:'—', nearest:'question', rangeText:'', levelLabel:'', dots:[], countText:'', dist:[] };
+    if (r) {
+      const maxC = Math.max(1, ...Object.values(r.counts));
+      res = {
+        avg: r.avg == null ? '—' : fmt(r.avg), nearest: r.nearest || 'question',
+        rangeText: r.avg == null ? 'Không có phiếu số' : `Thấp nhất ${r.min} · Cao nhất ${r.max}`,
+        levelLabel: r.level.label, countText: `${r.vals.length} phiếu`,
+        dots: [1,2,3,4].map(i => ({ bg: i <= r.level.n ? 'var(--accent)' : 'var(--line)' })),
+        dist: DECK.filter(v => r.counts[v]).map(v => ({ v, count:r.counts[v], h: Math.max(8, Math.round(r.counts[v]/maxC*64)) + 'px', w: Math.round(r.counts[v]/maxC*100) + '%', bg: v === r.mode ? 'var(--accent)' : 'var(--felt2)' }))
+      };
+    }
+    const finalChips = NUMS.map(v => { const on = v === s.final; return { v, onClick: () => this.setState({ final:v }), bd: on ? 'var(--accent)' : 'var(--line)', bg: on ? 'var(--accent)' : 'var(--surface2)', fg: on ? 'var(--accentInk)' : 'var(--ink)' }; });
+
+    const doneCount = Object.keys(s.done).length;
+    const taskRows = TASKS.map((t, i) => {
+      const isDone = s.done[i] != null, isCur = i === s.taskIdx && !isDone;
+      return { key:t.key, title:t.title, isDone, isCur, isTodo: !isDone && !isCur,
+        pts: isDone ? s.done[i] : isCur ? '…' : '–',
+        bg: s.justDone === i ? 'var(--justBg)' : i === s.taskIdx ? 'var(--rowCur)' : 'transparent', ptsBg: isDone ? 'var(--chip)' : 'transparent' };
+    });
+
+    const votedN = OTHERS.filter(o => s.mem[o.id].st === 'voted').length + (s.sel ? 1 : 0);
+    const mm = Math.floor(s.timer/60), ss = s.timer % 60;
+    const effOpts = [
+      { id:'full', label:'Đầy đủ', desc:'Đếm ngược 3-2-1, lật lần lượt, nhân vật ăn mừng' },
+      { id:'medium', label:'Vừa phải', desc:'Đếm ngược, các lá lật cùng lúc' },
+      { id:'minimal', label:'Tối giản', desc:'Không chuyển động, kết quả hiện ngay' }
+    ].map(o => ({ ...o, sel: s.effects === o.id, onClick: () => this.setState({ effects:o.id }), bd: s.effects === o.id ? 'var(--accent)' : 'transparent', bg: s.effects === o.id ? 'var(--rowCur)' : 'transparent' }));
+
+    const countBox = (size, fs) => s.count == null ? null : h('div', { key:'c'+s.count, style:{ width:size, height:size, borderRadius:'50%', background:'var(--accent)', color:'var(--accentInk)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Hanken Grotesk',sans-serif", fontWeight:600, fontSize:fs, lineHeight:1, paddingTop:size*0.06, boxSizing:'border-box', boxShadow:'none', animation:'ppPop .55s cubic-bezier(.3,.7,.3,1.3) forwards' } }, s.count);
+    const reactionLayer = h('div', { style:{ position:'absolute', left:0, bottom:0 } }, s.reactions.map(x => h('div', { key:x.id, style:{ position:'absolute', left:x.x, bottom:0, fontSize:34, animation: minimal ? 'ppFade 1.2s ease-out forwards' : 'ppFloat 1.5s ease-out forwards' } }, x.e)));
+    const reacts = [['👏','Vỗ tay'],['😄','Cười'],['🤔','Suy nghĩ'],['😮','Ngạc nhiên']].map(([e, label]) => ({ e, label, onClick: () => this.react(e) }));
+
+    const tabNow = (s.tab === 'r' && !r) ? 'q' : s.tab;
+    const target = s.sheet ? s.sheetTab : s.tab;
+    const people = { me:{ name:'Bạn', species:'fox' } }; OTHERS.forEach(o => people[o.id] = o);
+    let tw = { low:{}, high:{}, title:'', firstLabel:'' };
+    if (r && r.avg != null && r.min !== r.max) {
+      const ids = s.revealOrder.filter(id => NUMS.includes(this.voteOf(id)));
+      const lo = people[ids.find(id => +this.voteOf(id) === r.min)], hi = people[ids.find(id => +this.voteOf(id) === r.max)];
+      tw = { low:{ ...lo, v:String(r.min), label:'Thấp nhất · ' + r.min + ' điểm' }, high:{ ...hi, v:String(r.max), label:'Cao nhất · ' + r.max + ' điểm' },
+        title: hi.name + ' và ' + lo.name + ' nhìn task này rất khác nhau.', firstLabel: (s.chosen === 'low' ? lo.name : hi.name) + ' nói trước' };
+    }
+    const staticFx = !!p.scene;
+    const showConfetti = !!(r && r.level.n === 4 && !minimal);
+    const confetti = (hh) => h('div', { style:{ position:'absolute', inset:0 } }, CONF.map((c, i) => h('div', { key:i, style:{ position:'absolute', left:c.x + '%', top: (c.y * hh) + 'px', width: c.round ? 9 : 8, height: c.round ? 9 : 15, borderRadius: c.round ? '50%' : 3, background:c.c, transform:'rotate(' + c.r + 'deg)', animation: staticFx ? 'none' : 'ppConf 2s ease-out ' + c.d + 'ms forwards', opacity: staticFx ? 1 : 0 } })));
+    const tabs = [{ id:'q', label:`Câu hỏi (${s.questions.length})` }, { id:'n', label:`Ghi chú (${s.notes.length})` }].concat(r ? [{ id:'r', label:'Lý do (3)' }] : []).map(t => ({ ...t, bg: tabNow === t.id ? 'var(--surface)' : 'transparent', onClick: () => this.setState({ tab:t.id }) }));
+    const sheetTabs = [{ id:'tasks', label:`Task ${doneCount}/12` }, { id:'q', label:`Câu hỏi (${s.questions.length})` }, { id:'n', label:'Ghi chú' }].map(t => ({ ...t, bg: s.sheetTab === t.id ? 'var(--surface)' : 'transparent', onClick: () => this.setState({ sheetTab:t.id }) }));
+
+    const longM = layout === 'long';
+    const mMembersStyle = longM
+      ? { flex:'none', margin:'4px 12px 0', padding:'10px 6px', borderRadius:24, background:'var(--felt)', color:'var(--cream)', display:'grid', gridTemplateColumns:'repeat(4,minmax(0,1fr))', gap:'4px 2px', border:'6px solid var(--rim)' }
+      : { flex:'none', padding:'2px 10px 6px', display:'grid', gridTemplateColumns:'repeat(4,minmax(0,1fr))', gap:'4px 2px', color:'var(--ink)' };
+    const mTaskStyle = longM
+      ? { flex:'none', position:'relative', margin:'10px 12px 0', padding:'14px 16px', borderRadius:24, background:'var(--soft)', color:'var(--paperInk)', border:'none', display:'flex', flexDirection:'column', gap:8 }
+      : { flex:'none', position:'relative', margin:'4px 12px 0', padding:'14px 16px', borderRadius:24, background:'var(--felt)', color:'var(--cream)', border:'none', display:'flex', flexDirection:'column', gap:8 };
+
+    const ph = s.phase;
+    const mPrimary = ph === 'voting' ? { label:'Lật bài', action: () => this.flip(), op:1 }
+      : (ph === 'countdown' || ph === 'revealing') ? { label:'Đang lật…', action: () => {}, op:0.6 }
+      : ph === 'revealed' ? { label:`Chốt ${s.final} điểm`, action: () => this.lock(), op:1 }
+      : { label:'Task tiếp theo →', action: () => this.next(), op: s.taskIdx >= TASKS.length - 1 ? 0.5 : 1 };
+
+    return {
+      rootStyle, isDesktop: device === 'desktop', isMobile: device === 'mobile', isRound: layout === 'round', isLong: layout === 'long',
+      copyLink: () => this.copyLink(), copyLabel: s.copied ? 'Đã chép' : 'Chép link',
+      timerText: `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`, votedText: `${votedN}/6 đã chọn`,
+      toggleMenu: () => this.setState({ menu: !s.menu }), menuOpen: s.menu, menuRight: (ph === 'voting' || ph === 'countdown' || ph === 'revealing') ? '170px' : '20px',
+      effOpts, toggleSound: () => this.setState({ sound: !s.sound }), soundBg: s.sound ? 'var(--good)' : 'var(--line)', soundKnob: s.sound ? 'translateX(18px)' : 'translateX(0)',
+      showFlipBtn: ph === 'voting' || ph === 'countdown' || ph === 'revealing', flip: () => this.flip(), flipLabel: ph === 'voting' ? 'Lật bài' : 'Đang lật…', flipOp: ph === 'voting' ? 1 : 0.6,
+      seats, me, mSeats, task, round: s.round, hasAc: ac.length > 0, noAc: ac.length === 0, acCount: ac.length,
+      acList: ac.map((text, i) => ({ text, n: i + 1 })), acOpenNow, acOpenM, acChevron: acChev,
+      toggleAc: () => this.setState({ acOpen: !(device === 'mobile' ? acOpenM : acOpenNow) }),
+      isLocked: ph === 'locked', isRevealed: ph === 'revealed', final: s.final,
+      stampT: s.stamp ? 'rotate(-12deg) scale(1)' : (minimal ? 'rotate(-12deg) scale(1)' : 'rotate(-24deg) scale(1.9)'),
+      stampOp: s.stamp ? 1 : 0, stampTrans: minimal ? 'opacity 200ms' : 'transform 380ms cubic-bezier(.3,.7,.3,1.4), opacity 160ms',
+      isCountdown: ph === 'countdown', countEl: countBox(210, 130), countElM: countBox(150, 92),
+      reacts, reactionLayer,
+      showDeck: ph === 'voting' || ph === 'countdown' || ph === 'revealing', showResults: ph === 'revealed' || ph === 'locked',
+      deck, deckOp: ph === 'voting' ? 1 : 0.45, deckPE: ph === 'voting' ? 'auto' : 'none',
+      selText: s.sel ? `Bạn chọn: ${lbl(s.sel)}` : 'Chọn một lá, bấm lại để bỏ',
+      selShort: s.sel ? `Bạn chọn: ${lbl(s.sel)}` : 'Bài của bạn',
+      res, finalChips, revote: () => this.revote(), lock: () => this.lock(), next: () => this.next(), nextOp: s.taskIdx >= TASKS.length - 1 ? 0.5 : 1,
+      doneCount, progressW: `${doneCount/12*100}%`, taskRows,
+      tabs, isQ: tabNow === 'q', isN: tabNow === 'n', isR: tabNow === 'r', reasons: REASONS,
+      showConfetti, confettiEl: showConfetti ? confetti(1) : null, confettiElM: showConfetti ? confetti(1.4) : null,
+      isConsensus: !!(r && r.level.n === 4 && s.phase !== 'locked'), consensusText: r ? 'Cả bàn cùng chọn ' + (r.mode || '') + ' điểm' : '',
+      twistOpen: !!(s.twistOpen && tw.title), tw, closeTwist: () => this.setState({ twistOpen:false }),
+      spin: () => { if (s.spinning) return; const hiPick = Math.random() < 0.5; this.setState({ wheelRot: s.wheelRot + 1080 + (hiPick ? 0 : 180) + (s.wheelRot % 360 === 0 ? 0 : 180), spinning:true }); this.later(() => this.setState({ chosen: hiPick ? 'high' : 'low', spinning:false }), minimal ? 50 : 1000); },
+      wheelT: 'rotate(' + s.wheelRot + 'deg)', wheelTrans: minimal ? 'none' : 'transform 1s cubic-bezier(.2,.7,.2,1)', wheelLabel: s.spinning ? 'Đang quay…' : (s.chosen ? 'Quay lại' : 'Quay để chọn người nói trước'),
+      questions: s.questions, notes: s.notes.map((n, i) => ({ ...n, rot: `rotate(${i % 2 ? 0.8 : -0.8}deg)` })),
+      input: s.input, onInput: e => this.setState({ input: e.target.value }), onKey: e => { if (e.key === 'Enter') this.send(); }, send: () => this.send(),
+      inputPh: target === 'n' ? 'Thêm ghi chú…' : 'Đặt câu hỏi cho task này…',
+      openSheet: () => this.setState({ sheet:true, menu:false }), closeSheet: () => this.setState({ sheet:false }),
+      sheetPE: s.sheet ? 'auto' : 'none', sheetBackOp: s.sheet ? 1 : 0, sheetT: s.sheet ? 'translateY(0)' : 'translateY(102%)', sheetTrans: minimal ? 'none' : 'transform 300ms cubic-bezier(.3,.7,.3,1)',
+      sheetTabs, sheetIsTasks: s.sheetTab === 'tasks', sheetIsQ: s.sheetTab === 'q', sheetIsN: s.sheetTab === 'n', sheetHasInput: s.sheetTab !== 'tasks',
+      mMembersStyle, mTaskStyle, mChipBg: longM ? 'var(--chip)' : 'rgba(255,255,255,.12)', mDescH: acOpenM ? '200px' : '62px', mPrimary
+    };
+  }
+}
+</script>
+</body>
+</html>
