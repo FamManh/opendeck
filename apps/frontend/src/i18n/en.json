@@ -1,6 +1,17 @@
 {
-  "app": { "title": "OpenDeck — Planning Poker", "language": "Language" },
-  "scales": { "fibonacci": "Fibonacci", "tshirt": "T-shirt", "hours": "Hours", "days": "Days" },
+  "app": {
+    "title": "OpenDeck — Planning Poker",
+    "language": "Language",
+    "themeLight": "Switch to light theme",
+    "themeDark": "Switch to dark theme"
+  },
+  "scales": {
+    "fibonacci": "Fibonacci",
+    "tshirt": "T-shirt",
+    "hours": "Hours",
+    "days": "Days",
+    "custom": "Custom"
+  },
   "cards": {
     "special": {
       "coffee": "Need a break",
@@ -11,5 +22,134 @@
       "infinity": "Too big",
       "shrug": "No idea"
     }
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "species": {
+    "cat": "Cat",
+    "capybara": "Capybara",
+    "robot": "Robot",
+    "dino": "Dino",
+    "owl": "Owl",
+    "bunny": "Bunny",
+    "koala": "Koala",
+    "fox": "Fox"
+  },
+  "nav": {
+    "login": "Log in",
+    "createRoom": "Create room",
+    "myRooms": "My rooms",
+    "logout": "Log out"
+  },
+  "errors": {
+    "generic": "Something went wrong, please try again.",
+    "VALIDATION": "Some details are invalid, please check them.",
+    "INVALID_CREDENTIALS": "Wrong email or password.",
+    "TOO_MANY_ATTEMPTS": "Too many attempts, try again in a few minutes.",
+    "EMAIL_TAKEN": "This email is already registered.",
+    "RESET_TOKEN_INVALID": "This reset link is invalid or has expired.",
+    "UNAUTHENTICATED": "You need to log in.",
+    "SCALE_REQUIRED": "Pick a deck.",
+    "SCALE_TOO_SMALL": "A deck needs at least 2 cards.",
+    "SCALE_DUPLICATE": "Cards in a deck must be unique.",
+    "SCALE_EMPTY_LABEL": "A card label is empty.",
+    "SCALE_RESERVED_LABEL": "A card label clashes with a special card."
+  },
+  "auth": {
+    "loginTitle": "Welcome back.",
+    "loginSub": "Log in to create rooms and host sessions.",
+    "registerTitle": "Create an account.",
+    "registerSub": "An account lets you create rooms and host them.",
+    "tabLogin": "Log in",
+    "tabRegister": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display name",
+    "passwordHint": "At least 8 characters.",
+    "forgotLink": "Forgot password?",
+    "loginBtn": "Log in",
+    "registerBtn": "Sign up",
+    "justJoin": "Just want to join?",
+    "joinByCode": "Enter a room with a code",
+    "noAccountNeeded": ", no account needed.",
+    "haveAccount": "Already have an account?",
+    "footer": "© 2026 Planning Poker",
+    "taglineTitle": "One card each, flipped together.",
+    "taglineSub": "Nobody gets swayed by whoever speaks first."
+  },
+  "forgot": {
+    "title": "Forgot password.",
+    "sub": "Enter your email and we'll send a reset link.",
+    "send": "Send reset link",
+    "resend": "Resend link",
+    "sentTitle": "Link sent.",
+    "sentBody": "Check the inbox of {{email}}. The link is valid for 30 minutes.",
+    "back": "Back to log in"
+  },
+  "reset": {
+    "title": "Reset password.",
+    "sub": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "submit": "Change password",
+    "done": "Password changed. Log in with your new password.",
+    "missingToken": "Reset code is missing. Open the link from your email again."
+  },
+  "home": {
+    "title": "Estimate tasks like a card game.",
+    "sub": "The whole team flips cards together, talks when they differ, then settles a score for each task.",
+    "createRoom": "Create room",
+    "codeLabel": "Room code",
+    "codePlaceholder": "Enter room code or link",
+    "enter": "Join",
+    "note": "Players don't need an account. Hosts log in to create rooms.",
+    "myRooms": "My rooms",
+    "noRooms": "You have no rooms yet.",
+    "itemsProgress": "{{done}}/{{total}} tasks",
+    "locked": "Locked",
+    "hasPassword": "Password protected"
+  },
+  "createRoom": {
+    "title": "Create a new room.",
+    "name": "Room name",
+    "namePlaceholder": "Sprint 24 · Payments team",
+    "deck": "Deck",
+    "deckCount": "{{cards}} cards + {{specials}} special",
+    "customHint": "Enter your own values",
+    "customLabels": "Cards, separated by commas",
+    "customPlaceholder": "S, M, L",
+    "customNote": "At least 2 cards, all different.",
+    "specials": "Special cards · tap to toggle",
+    "access": "Access",
+    "public": "Public",
+    "withPassword": "Password",
+    "roomPassword": "Room password",
+    "requireApproval": "Host approves entries",
+    "requireApprovalShort": "Host approval",
+    "requireApprovalHint": "Guests wait for you to accept them before sitting at the table.",
+    "on": "On",
+    "off": "Off",
+    "preview": "Preview",
+    "submit": "Create room"
+  },
+  "join": {
+    "title": "Join {{name}}.",
+    "subtitle": "Enter a name and pick a character to take a seat.",
+    "publicRoom": "Public room",
+    "passwordRoom": "Password-protected room",
+    "displayName": "Display name",
+    "nameTooLong": "Names are limited to {{max}} characters.",
+    "pickAvatar": "Pick a character",
+    "roomPassword": "Room password",
+    "submit": "Join room",
+    "retry": "Try again",
+    "wrongPassword": "Wrong password, try again.",
+    "tooMany": "Too many wrong attempts, try again in a few minutes.",
+    "error": "Couldn't join the room, please try again."
+  },
+  "room": {
+    "notFound": "We couldn't find this room.",
+    "backHome": "Back to home",
+    "joinedAs": "You joined as {{name}}."
   }
 }

@@ -1,6 +1,17 @@
 {
-  "app": { "title": "OpenDeck — Planning Poker", "language": "Ngôn ngữ" },
-  "scales": { "fibonacci": "Fibonacci", "tshirt": "Áo thun (T-shirt)", "hours": "Giờ", "days": "Ngày" },
+  "app": {
+    "title": "OpenDeck — Planning Poker",
+    "language": "Ngôn ngữ",
+    "themeLight": "Chuyển sang giao diện sáng",
+    "themeDark": "Chuyển sang giao diện tối"
+  },
+  "scales": {
+    "fibonacci": "Fibonacci",
+    "tshirt": "Áo thun (T-shirt)",
+    "hours": "Giờ",
+    "days": "Ngày",
+    "custom": "Tùy chỉnh"
+  },
   "cards": {
     "special": {
       "coffee": "Cần nghỉ",
@@ -11,5 +22,134 @@
       "infinity": "Quá lớn",
       "shrug": "Không biết"
     }
+  },
+  "common": {
+    "cancel": "Hủy"
+  },
+  "species": {
+    "cat": "Mèo",
+    "capybara": "Capybara",
+    "robot": "Robot",
+    "dino": "Khủng long",
+    "owl": "Cú",
+    "bunny": "Thỏ",
+    "koala": "Koala",
+    "fox": "Cáo"
+  },
+  "nav": {
+    "login": "Đăng nhập",
+    "createRoom": "Tạo phòng",
+    "myRooms": "Phòng của tôi",
+    "logout": "Đăng xuất"
+  },
+  "errors": {
+    "generic": "Có lỗi xảy ra, thử lại nhé.",
+    "VALIDATION": "Thông tin chưa hợp lệ, kiểm tra lại nhé.",
+    "INVALID_CREDENTIALS": "Email hoặc mật khẩu chưa đúng.",
+    "TOO_MANY_ATTEMPTS": "Thử quá nhiều lần, thử lại sau ít phút nhé.",
+    "EMAIL_TAKEN": "Email này đã được đăng ký.",
+    "RESET_TOKEN_INVALID": "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+    "UNAUTHENTICATED": "Bạn cần đăng nhập.",
+    "SCALE_REQUIRED": "Hãy chọn bộ bài.",
+    "SCALE_TOO_SMALL": "Bộ bài cần ít nhất 2 lá.",
+    "SCALE_DUPLICATE": "Các lá trong bộ bài không được trùng nhau.",
+    "SCALE_EMPTY_LABEL": "Có lá bài đang để trống.",
+    "SCALE_RESERVED_LABEL": "Tên lá bài trùng với lá đặc biệt."
+  },
+  "auth": {
+    "loginTitle": "Chào mừng trở lại.",
+    "loginSub": "Đăng nhập để tạo phòng và kéo task từ Jira.",
+    "registerTitle": "Tạo tài khoản.",
+    "registerSub": "Tài khoản dùng để tạo phòng và làm host.",
+    "tabLogin": "Đăng nhập",
+    "tabRegister": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "displayName": "Tên hiển thị",
+    "passwordHint": "Tối thiểu 8 ký tự.",
+    "forgotLink": "Quên mật khẩu?",
+    "loginBtn": "Đăng nhập",
+    "registerBtn": "Đăng ký",
+    "justJoin": "Chỉ muốn tham gia?",
+    "joinByCode": "Vào phòng bằng mã",
+    "noAccountNeeded": ", không cần tài khoản.",
+    "haveAccount": "Đã có tài khoản?",
+    "footer": "© 2026 Planning Poker",
+    "taglineTitle": "Mỗi người một lá, lật cùng lúc.",
+    "taglineSub": "Không ai bị ảnh hưởng bởi người nói trước."
+  },
+  "forgot": {
+    "title": "Quên mật khẩu.",
+    "sub": "Nhập email đã đăng ký, chúng tôi gửi link đặt lại.",
+    "send": "Gửi link đặt lại",
+    "resend": "Gửi lại link",
+    "sentTitle": "Đã gửi link.",
+    "sentBody": "Kiểm tra hộp thư {{email}}. Link có hiệu lực trong 30 phút.",
+    "back": "Quay lại đăng nhập"
+  },
+  "reset": {
+    "title": "Đặt lại mật khẩu.",
+    "sub": "Nhập mật khẩu mới cho tài khoản của bạn.",
+    "newPassword": "Mật khẩu mới",
+    "submit": "Đổi mật khẩu",
+    "done": "Đã đổi mật khẩu. Đăng nhập bằng mật khẩu mới nhé.",
+    "missingToken": "Thiếu mã đặt lại. Hãy mở lại link trong email."
+  },
+  "home": {
+    "title": "Ước lượng task như một ván bài.",
+    "sub": "Cả team cùng lật bài, bàn bạc khi lệch nhau, rồi chốt điểm cho từng task.",
+    "createRoom": "Tạo phòng",
+    "codeLabel": "Mã phòng",
+    "codePlaceholder": "Nhập mã phòng hoặc link",
+    "enter": "Vào",
+    "note": "Người chơi không cần tài khoản. Host đăng nhập để tạo phòng.",
+    "myRooms": "Phòng của tôi",
+    "noRooms": "Bạn chưa có phòng nào.",
+    "itemsProgress": "{{done}}/{{total}} task",
+    "locked": "Đã khóa",
+    "hasPassword": "Có mật khẩu"
+  },
+  "createRoom": {
+    "title": "Tạo phòng mới.",
+    "name": "Tên phòng",
+    "namePlaceholder": "Sprint 24 · Team Thanh toán",
+    "deck": "Bộ bài",
+    "deckCount": "{{cards}} lá + {{specials}} đặc biệt",
+    "customHint": "Tự nhập giá trị",
+    "customLabels": "Các lá bài, cách nhau bằng dấu phẩy",
+    "customPlaceholder": "S, M, L",
+    "customNote": "Cần ít nhất 2 lá, không trùng nhau.",
+    "specials": "Lá đặc biệt · chạm để bật/tắt",
+    "access": "Truy cập",
+    "public": "Công khai",
+    "withPassword": "Có mật khẩu",
+    "roomPassword": "Mật khẩu phòng",
+    "requireApproval": "Cần host duyệt người vào",
+    "requireApprovalShort": "Host duyệt",
+    "requireApprovalHint": "Khách phải chờ bạn chấp nhận trước khi ngồi vào bàn.",
+    "on": "Bật",
+    "off": "Tắt",
+    "preview": "Xem trước",
+    "submit": "Tạo phòng"
+  },
+  "join": {
+    "title": "Vào phòng {{name}}.",
+    "subtitle": "Nhập tên và chọn nhân vật để ngồi vào bàn.",
+    "publicRoom": "Phòng công khai",
+    "passwordRoom": "Phòng có mật khẩu",
+    "displayName": "Tên hiển thị",
+    "nameTooLong": "Tên tối đa {{max}} ký tự.",
+    "pickAvatar": "Chọn nhân vật",
+    "roomPassword": "Mật khẩu phòng",
+    "submit": "Vào phòng",
+    "retry": "Thử lại",
+    "wrongPassword": "Mật khẩu chưa đúng, thử lại nhé.",
+    "tooMany": "Nhập sai quá nhiều lần, thử lại sau ít phút nhé.",
+    "error": "Chưa vào được phòng, thử lại nhé."
+  },
+  "room": {
+    "notFound": "Không tìm thấy phòng này.",
+    "backHome": "Về trang chủ",
+    "joinedAs": "Bạn đã vào phòng với tên {{name}}."
   }
 }
