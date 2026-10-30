@@ -68,4 +68,4 @@ function setLanguage(lang: Language): void
 - [x] **6.** i18n: `vi.json`/`en.json`, `i18n/index.ts`, `resources.test.ts` (key vi = en; mọi `SPECIAL_IDS` và preset đều có bản dịch); App có dropdown VI/EN.
 - [x] **7.** Verify: `pnpm test` (backend 15 + frontend 3 PASS), `pnpm typecheck` sạch, `pnpm --filter @opendeck/frontend build` thành công.
 - [x] **8.** Cập nhật Plan 1 (Task 1 as-built, đường dẫn `apps/backend/src/domain`, `apps/frontend`, constraint lá đặc biệt + i18n) và roadmap §2.1, §3, §4.
-- [ ] **9.** Commit `feat: scaffold frontend/backend apps, deck with toggleable special cards, vi/en i18n`.
+- [x] **9.** Commit `feat: scaffold frontend/backend apps, deck with toggleable special cards, vi/en i18n`.
