@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { toast } from 'sonner'
 import i18n from '@/i18n'
 import type { Command, DomainEvent, PublicRoomState } from '@/domain'
+import { fxRuntime } from '@/fx/runtime'
 import { createRoomSocket, type RoomSocket, type SocketFactory } from '@/realtime/socket'
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
@@ -24,11 +25,14 @@ interface RoomStore {
   connect: (slug: string, factory?: SocketFactory) => void
   disconnect: () => void
   send: (cmd: ClientCommand) => Promise<void>
+  /** Ephemeral fx channel (reactions, paper planes, wheel); never touches room state. */
+  sendFx: (event: 'fx:react' | 'fx:throw' | 'fx:spin', payload?: object) => Promise<void>
 }
 
 const initial = { state: null, connection: 'connecting' as Connection, connError: null, lastEvents: [], approvalRequests: [] }
 
 let socket: RoomSocket | null = null
+let stopFx: (() => void) | null = null
 
 export function errorToastMessage(code: string): string {
   const msg = i18n.t(`errors.${code}`, { defaultValue: '' })
@@ -41,13 +45,27 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   setPid: pid => set({ pid }),
   connect: (slug, factory = createRoomSocket) => {
     socket?.disconnect()
+    stopFx?.()
+    fxRuntime.reset()
+    stopFx = fxRuntime.start()
     set({ ...initial })
     const s = factory(slug)
     socket = s
     const live = (fn: () => void) => () => { if (socket === s) fn() }
 
-    s.on('state', (state: PublicRoomState) => { if (socket === s) set({ state, connection: 'online', connError: null }) })
-    s.on('events', (events: DomainEvent[]) => { if (socket === s) set({ lastEvents: events }) })
+    s.on('state', (state: PublicRoomState) => {
+      if (socket !== s) return
+      fxRuntime.onState(get().state, state)
+      set({ state, connection: 'online', connError: null })
+    })
+    s.on('events', (events: DomainEvent[]) => {
+      if (socket !== s) return
+      set({ lastEvents: events })
+      fxRuntime.onEvents(events, get().state)
+    })
+    s.on('fx:reactions', (p: { items: { emoji: string; count: number }[] }) => { if (socket === s) fxRuntime.addReactions(p.items) })
+    s.on('fx:thrown', (p: { from: string; target: string; kind: 'paper' | 'plane' }) => { if (socket === s) fxRuntime.addPlane(p) })
+    s.on('fx:spun', (p: { chosen: 'low' | 'high'; pid: string; turns: number }) => { if (socket === s) fxRuntime.setSpin(p) })
     s.on('approval:pending', live(() => set({ connection: 'pending' })))
     const gone = live(() => set({ connection: 'kicked' }))
     s.on('kicked', gone)
@@ -67,8 +85,22 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   disconnect: () => {
     socket?.disconnect()
     socket = null
+    stopFx?.()
+    stopFx = null
+    fxRuntime.reset()
     set({ ...initial })
   },
+  sendFx: (event, payload = {}) =>
+    new Promise<void>((resolve, reject) => {
+      const s = socket
+      if (!s) { reject(new Error('NOT_READY')); return }
+      s.emit(event, payload, (ack: { ok: true } | { ok: false; code: string }) => {
+        if (ack.ok) { resolve(); return }
+        // Rate limits on reactions are expected under spam; only surface real problems.
+        if (ack.code !== 'RATE_LIMITED') toast.error(errorToastMessage(ack.code))
+        reject(new Error(ack.code))
+      })
+    }),
   send: cmd =>
     new Promise<void>((resolve, reject) => {
       const s = socket

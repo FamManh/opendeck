@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, Play, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PublicRoomState } from '@/domain'
 import { useIsMobile } from '@/lib/useIsMobile'
+import { deriveMascotState, SLEEP_AFTER_MS } from '@/fx/mascotState'
+import { useFxStore } from '@/fx/runtime'
+import { useRoomStore } from '@/store/roomStore'
+import { FxLayers } from './fx/FxLayers'
 import { Seat } from './Seat'
 
 export interface TableProps {
@@ -71,26 +75,51 @@ export function Table({ state, pid, isHost, onStart, onAdd, onSummary }: TablePr
   const mobile = useIsMobile()
   const cur = state.current
   const revealed = cur?.status === 'revealed'
+  const hold = useFxStore(s => s.hold)
+  const moment = useFxStore(s => s.moment)
+  const discussion = useFxStore(s => s.discussion)
+  const roundStartedAt = useFxStore(s => s.roundStartedAt)
+  const sendFx = useRoomStore(s => s.sendFx)
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (cur?.status !== 'voting') return
+    const id = setInterval(() => setNow(Date.now()), 5000)
+    return () => clearInterval(id)
+  }, [cur?.status])
   const ordered = Object.values(state.participants)
     .sort((a, b) => a.joinedAt - b.joinedAt)
     .sort((a, b) => Number(b.id === pid) - Number(a.id === pid))
 
-  const seat = (p: (typeof ordered)[number]) => (
-    <Seat
-      key={p.id}
-      participant={p}
-      voted={!!cur && (cur.voted.includes(p.id) || (revealed && cur.votes?.[p.id] !== undefined))}
-      vote={revealed ? (cur?.votes?.[p.id] ?? null) : null}
-      revealed={revealed}
-      isHost={state.hostId === p.id}
-      isMe={p.id === pid}
-    />
-  )
+  const seat = (p: (typeof ordered)[number]) => {
+    const voted = !!cur && (cur.voted.includes(p.id) || (revealed && cur.votes?.[p.id] !== undefined))
+    const shown = revealed && (!hold || hold.all || hold.flipped.has(p.id))
+    const cardId = shown ? (cur?.votes?.[p.id] ?? null) : null
+    const mascot = deriveMascotState(p, {
+      status: cur?.status ?? 'idle', voted, cardId, stats: cur?.stats ?? null, now, roundStartedAt, moment: moment === 'consensus' ? 'consensus' : null,
+    })
+    const asleep = mascot === 'sleeping' && cur?.status === 'voting' && p.id !== pid && now - roundStartedAt > SLEEP_AFTER_MS
+    const spot = moment === 'twist' && discussion ? (discussion.low.includes(p.id) ? 'low' : discussion.high.includes(p.id) ? 'high' : undefined) : undefined
+    return (
+      <Seat
+        key={p.id}
+        participant={p}
+        voted={voted}
+        vote={cardId}
+        revealed={revealed}
+        isHost={state.hostId === p.id}
+        isMe={p.id === pid}
+        mascot={p.online && !(mascot === 'thinking' || mascot === 'voted') ? mascot : undefined}
+        spot={spot}
+        onThrow={asleep ? () => void sendFx('fx:throw', { target: p.id, kind: 'paper' }).catch(() => {}) : undefined}
+      />
+    )
+  }
   const task = <CurrentTask state={state} isHost={isHost} onStart={onStart} onAdd={onAdd} onSummary={onSummary} />
 
   if (mobile) {
     return (
-      <div data-slot="table" className="flex flex-col gap-3 px-3">
+      <div data-slot="table" className="relative flex flex-col gap-3 px-3">
+        <FxLayers state={state} isHost={isHost} />
         <div className="flex flex-wrap justify-center gap-x-1 gap-y-2">{ordered.map(seat)}</div>
         <div className="flex justify-center rounded-3xl bg-felt p-3">{task}</div>
       </div>
@@ -98,6 +127,7 @@ export function Table({ state, pid, isHost, onStart, onAdd, onSummary }: TablePr
   }
   return (
     <div data-slot="table" className="relative mx-auto h-full min-h-[440px] w-full max-w-4xl">
+      <FxLayers state={state} isHost={isHost} />
       <div className="absolute top-[48%] left-1/2 h-[56%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-felt" />
       <div className="absolute top-[47%] left-1/2 z-10 flex w-[44%] -translate-x-1/2 -translate-y-1/2 justify-center">{task}</div>
       {ordered.map((p, i) => {

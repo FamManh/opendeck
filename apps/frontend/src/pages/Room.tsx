@@ -14,6 +14,8 @@ import { Table } from '@/room/Table'
 import { CardFan } from '@/room/CardFan'
 import { ResultsPanel } from '@/room/ResultsPanel'
 import { RoomTabs } from '@/room/RoomTabs'
+import { useFxStore } from '@/fx/runtime'
+import { ReactionBar } from '@/room/fx/ReactionLayer'
 import { TopBar } from '@/room/TopBar'
 import { PendingBar } from '@/room/PendingBar'
 import { ReconnectBanner } from '@/room/ReconnectBanner'
@@ -56,6 +58,7 @@ function RoomView({ slug, name }: { slug: string; name: string }) {
   const pid = useRoomStore(s => s.pid)
   const lastEvents = useRoomStore(s => s.lastEvents)
   const connError = useRoomStore(s => s.connError)
+  const hold = useFxStore(s => s.hold)
   const [sheet, setSheet] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
 
@@ -90,11 +93,12 @@ function RoomView({ slug, name }: { slug: string; name: string }) {
       <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_340px]">
         <section className="flex min-h-0 flex-col gap-3 overflow-y-auto py-3">
           <div className="min-h-[440px] flex-1"><Table state={state} pid={pid} isHost={isHost} onStart={itemId => void send({ type: 'startRound', itemId }).catch(ignore)} onAdd={openAdd} onSummary={() => navigate(`/r/${slug}/summary`)} /></div>
+          <ReactionBar />
           {cur?.status === 'voting' && canVote && (
             <CardFan scale={state.scale} enabledSpecials={state.enabledSpecials} myVote={cur.myVote} send={cmd => send(cmd).catch(ignore)} />
           )}
           {cur?.status === 'voting' && me?.role === 'observer' && <p className="text-center text-sm text-muted-foreground">{t('room.observing')}</p>}
-          {revealed && stats && (
+          {revealed && stats && !hold && (
             <div className="mx-3 md:mx-6">
               <ResultsPanel
                 stats={stats}

@@ -14,6 +14,10 @@ export interface SeatProps {
   revealed: boolean
   isHost?: boolean
   isMe?: boolean
+  /** Overrides the mascot derived from status (sleeping / celebrating come from the fx layer). */
+  mascot?: MascotState | undefined
+  spot?: 'low' | 'high' | undefined
+  onThrow?: (() => void) | undefined
 }
 
 const MASCOT: Record<SeatStatus, MascotState> = {
@@ -27,15 +31,15 @@ export function seatStatus(p: Participant, voted: boolean, revealed: boolean): S
   return revealed ? 'novote' : 'thinking'
 }
 
-export function Seat({ participant: p, voted, vote, revealed, isHost, isMe }: SeatProps) {
+export function Seat({ participant: p, voted, vote, revealed, isHost, isMe, mascot, spot, onThrow }: SeatProps) {
   const { t } = useTranslation()
   const status = seatStatus(p, voted, revealed)
   const showCard = p.role === 'voter' && voted
   const face = revealed && vote !== null
   return (
-    <div data-slot="seat" data-status={status} className={`flex w-24 flex-col items-center gap-1 transition-opacity duration-300 ${status === 'offline' ? 'opacity-45' : ''}`}>
-      <div className="relative size-[72px]">
-        <Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={MASCOT[status]} />
+    <div data-slot="seat" data-pid={p.id} data-status={status} data-spot={spot} className={`relative flex w-24 flex-col items-center gap-1 transition-opacity duration-300 ${status === 'offline' ? 'opacity-45' : ''}`}>
+      <div className={`relative size-[72px] rounded-full ${spot ? 'ring-4 ring-primary' : ''}`}>
+        <Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={mascot ?? MASCOT[status]} />
         {isHost && <Crown aria-label={t('room.host')} className="absolute -top-1 -right-1 size-5 rounded-full bg-primary p-1 text-primary-foreground" />}
       </div>
       <div className="h-[52px] w-9">
@@ -45,6 +49,7 @@ export function Seat({ participant: p, voted, vote, revealed, isHost, isMe }: Se
         {p.name}{isMe ? ` · ${t('room.you')}` : ''}
       </div>
       <div className="text-[11px] font-semibold text-muted-foreground">{t(`room.status.${status}`)}</div>
+      {onThrow && <button type="button" onClick={onThrow} aria-label={t('fx.throwPlane')} className="absolute top-0 left-0 size-9 rounded-full bg-muted text-base">✈️</button>}
     </div>
   )
 }

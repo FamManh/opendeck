@@ -23,11 +23,11 @@ Mở file `.dc.html` bằng trình duyệt; `support.js` phải nằm cùng thư
 | 04 | Vào phòng với tư cách khách (công khai / có mật khẩu, nhập sai) | Plan 1 · Task 7 |
 | 05 | Kéo task từ Jira | Plan 3 (hoãn) |
 | 06 | Đang bỏ phiếu (`Planning Poker.dc.html#3a`) | Plan 1 · Task 8 |
-| 07 | Lật bài: đếm ngược 3-2-1, các lá lật cách nhau 150ms | Plan 1 · Task 8 (trạng thái) + Plan 2 (hiệu ứng) |
-| 08 | Đồng thuận: confetti 2 giây, nhân vật ăn mừng | Plan 2 |
-| 09 | Plot twist: đèn sân khấu, vòng quay chọn người nói trước | Plan 1 · Task 8 (lời mời nói trước) + Plan 2 (đèn sân khấu, vòng quay) |
+| 07 | Lật bài: đếm ngược 3-2-1, các lá lật cách nhau 150ms | Plan 1 · Task 8 (trạng thái) + Plan 2 · Task 2 |
+| 08 | Đồng thuận: confetti 2 giây, nhân vật ăn mừng | Plan 2 · Task 3 |
+| 09 | Plot twist: đèn sân khấu, vòng quay chọn người nói trước | Plan 1 · Task 8 (lời mời nói trước) + Plan 2 · Task 3 (đèn sân khấu) + Task 5 (vòng quay) |
 | 10 | Bảng kết quả + tab Lý do + host chọn điểm cuối | Plan 1 · Task 8 |
-| 11 | Chốt điểm: con dấu, task chuyển sang trạng thái xong | Plan 1 · Task 8 (trạng thái) + Plan 2 (con dấu) |
+| 11 | Chốt điểm: con dấu, task chuyển sang trạng thái xong | Plan 1 · Task 8 (trạng thái) + Plan 2 · Task 2 (con dấu) |
 | 12 | Đẩy điểm về Jira | Plan 3 (hoãn) |
 | 13 | Tổng kết buổi, xuất file | Plan 1 · Task 9 (danh hiệu → Plan 4) |
-| 14 | Cài đặt hiệu ứng (3 mức + âm thanh) | Plan 2 |
+| 14 | Cài đặt hiệu ứng (3 mức + âm thanh) | Plan 2 · Task 1 (+ Task 6 âm thanh) |

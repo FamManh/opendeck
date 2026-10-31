@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Copy, Eye, Timer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/SiteHeader'
+import { FxSettingsSheet } from './fx/FxSettingsSheet'
 import type { Participant, PublicRoomState } from '@/domain'
 import type { ClientCommand } from '@/store/roomStore'
 
@@ -53,6 +54,7 @@ export function TopBar({ name, state, me, isHost, send }: TopBarProps) {
       {isHost && cur?.status === 'voting' && (
         <Button className="h-10" onClick={() => void send({ type: 'reveal' }).catch(() => {})}>{t('room.reveal')}</Button>
       )}
+      <FxSettingsSheet />
       <ThemeToggle />
     </header>
   )

@@ -8,6 +8,7 @@ import type { Namespace, Socket } from 'socket.io'
 import { DomainError, toPublicState, type Command, type DomainEvent, type RoomState } from '../domain'
 import { RoomStoreService, type RoomUpdate } from '../rooms/room-store.service'
 import { CmdRateLimiter } from './cmd-rate-limiter'
+import { FX_FLUSH_MS, FxService } from './fx.service'
 import { WsAuthError, WsAuthService, type WsIdentity } from './ws-auth.service'
 
 export type CmdAck = { ok: true } | { ok: false; code: string }
@@ -33,7 +34,10 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     private readonly store: RoomStoreService,
     private readonly auth: WsAuthService,
     @Inject(CmdRateLimiter) private readonly limiter: CmdRateLimiter,
+    private readonly fx: FxService,
   ) {}
+
+  private readonly flushers = new Map<string, NodeJS.Timeout>()
 
   onModuleInit(): void {
     this.sub = this.store.events$.subscribe(u => this.broadcast(u))
@@ -41,6 +45,8 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   onModuleDestroy(): void {
     this.sub?.unsubscribe()
+    this.flushers.forEach(clearInterval)
+    this.flushers.clear()
   }
 
   async handleConnection(socket: Socket): Promise<void> {
@@ -90,6 +96,53 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       this.log.error(String(e))
       return { ok: false, code: 'INTERNAL' }
     }
+  }
+
+  @SubscribeMessage('fx:react')
+  onReact(@ConnectedSocket() socket: Socket, @MessageBody() body: unknown): CmdAck {
+    const who = dataOf(socket)
+    if (!who) return { ok: false, code: 'NOT_READY' }
+    const r = this.fx.react(who.slug, who.pid, (body as { emoji?: unknown } | null)?.emoji)
+    if (!r.ok) return r
+    this.scheduleFlush(who.slug)
+    return { ok: true }
+  }
+
+  @SubscribeMessage('fx:throw')
+  async onThrow(@ConnectedSocket() socket: Socket, @MessageBody() body: unknown): Promise<CmdAck> {
+    const who = dataOf(socket)
+    if (!who) return { ok: false, code: 'NOT_READY' }
+    const b = (body ?? {}) as { target?: unknown; kind?: unknown }
+    const state = await this.store.load(who.slug).catch(() => undefined)
+    if (!state) return { ok: false, code: 'NOT_READY' }
+    const r = this.fx.throwAt(who.slug, state, who.pid, b.target, b.kind)
+    if (!r.ok) return r
+    this.server.to(who.slug).emit('fx:thrown', { from: who.pid, target: b.target, kind: b.kind })
+    return { ok: true }
+  }
+
+  @SubscribeMessage('fx:spin')
+  async onSpin(@ConnectedSocket() socket: Socket): Promise<CmdAck> {
+    const who = dataOf(socket)
+    if (!who) return { ok: false, code: 'NOT_READY' }
+    const state = await this.store.load(who.slug).catch(() => undefined)
+    if (!state) return { ok: false, code: 'NOT_READY' }
+    const r = this.fx.spin(who.slug, state, who.pid)
+    if (!r.ok) return r
+    this.server.to(who.slug).emit('fx:spun', r.value)
+    return { ok: true }
+  }
+
+  /** Gộp reaction theo lô mỗi 250ms cho mỗi phòng; timer tự dừng khi không còn gì chờ. */
+  private scheduleFlush(slug: string): void {
+    if (this.flushers.has(slug)) return
+    const timer = setInterval(() => {
+      const items = this.fx.drain(slug)
+      if (items.length === 0) { clearInterval(timer); this.flushers.delete(slug); return }
+      this.server.to(slug).emit('fx:reactions', { items })
+    }, FX_FLUSH_MS)
+    timer.unref()
+    this.flushers.set(slug, timer)
   }
 
   private reject(socket: Socket, code: string): void {

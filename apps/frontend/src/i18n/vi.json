@@ -83,7 +83,13 @@
     "INTERNAL": "Máy chủ gặp lỗi.",
     "ROOM_NOT_FOUND": "Không tìm thấy phòng.",
     "NO_TICKET": "Bạn cần vào phòng bằng liên kết trước.",
-    "banned": "Bạn đã bị mời ra khỏi phòng này."
+    "banned": "Bạn đã bị mời ra khỏi phòng này.",
+    "BAD_EMOJI": "Emoji này không được hỗ trợ.",
+    "BAD_KIND": "Kiểu ném không hợp lệ.",
+    "BAD_TARGET": "Không thể ném vào người này.",
+    "TARGET_NOT_IDLE": "Người này đã chọn bài rồi.",
+    "NOT_DISCUSSION": "Vòng này chưa cần thảo luận.",
+    "ALREADY_SPUN": "Vòng quay đã được dùng cho vòng này."
   },
   "auth": {
     "loginTitle": "Chào mừng trở lại.",
@@ -290,5 +296,32 @@
     "colFinal": "Điểm chốt",
     "colRounds": "Vòng",
     "notFinal": "—"
+  },
+  "fx": {
+    "open": "Cài đặt hiệu ứng",
+    "title": "Hiệu ứng",
+    "description": "Chọn mức hiệu ứng cho buổi họp.",
+    "localOnly": "Chỉ áp dụng trên máy của bạn.",
+    "level": {
+      "full": "Đầy đủ",
+      "medium": "Vừa phải",
+      "minimal": "Tối giản"
+    },
+    "levelDesc": {
+      "full": "Đếm ngược, lật bài từng lá, confetti và âm thanh.",
+      "medium": "Có đếm ngược, các lá lật cùng lúc, không âm thanh.",
+      "minimal": "Không chuyển động, kết quả hiện ngay."
+    },
+    "sound": "Âm thanh",
+    "followReduced": "Theo giảm chuyển động của hệ thống",
+    "downgraded": "Máy đang hơi chậm, đã chuyển hiệu ứng sang {{level}}. Đổi lại trong ✦.",
+    "speakFirst": "Mời {{low}} và {{high}} nói trước",
+    "spin": "Quay chọn người nói trước",
+    "spinResult": "{{name}} nói trước",
+    "throwPlane": "Ném máy bay giấy",
+    "reactions": "Reaction",
+    "react": "Gửi {{emoji}}",
+    "countdown": "Đếm ngược {{n}}",
+    "stamp": "Đã chốt"
   }
 }

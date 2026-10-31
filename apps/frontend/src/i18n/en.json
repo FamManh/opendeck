@@ -83,7 +83,13 @@
     "INTERNAL": "Server error.",
     "ROOM_NOT_FOUND": "Room not found.",
     "NO_TICKET": "Open the room through its link first.",
-    "banned": "You were removed from this room."
+    "banned": "You were removed from this room.",
+    "BAD_EMOJI": "That emoji isn't supported.",
+    "BAD_KIND": "Invalid throw type.",
+    "BAD_TARGET": "You can't throw at this person.",
+    "TARGET_NOT_IDLE": "They already picked a card.",
+    "NOT_DISCUSSION": "This round doesn't need discussion.",
+    "ALREADY_SPUN": "The wheel was already used this round."
   },
   "auth": {
     "loginTitle": "Welcome back.",
@@ -290,5 +296,32 @@
     "colFinal": "Final",
     "colRounds": "Rounds",
     "notFinal": "—"
+  },
+  "fx": {
+    "open": "Effects settings",
+    "title": "Effects",
+    "description": "Choose how lively the meeting feels.",
+    "localOnly": "Only applies on your device.",
+    "level": {
+      "full": "Full",
+      "medium": "Medium",
+      "minimal": "Minimal"
+    },
+    "levelDesc": {
+      "full": "Countdown, card-by-card flips, confetti and sound.",
+      "medium": "Countdown, cards flip together, no sound.",
+      "minimal": "No motion, results appear instantly."
+    },
+    "sound": "Sound",
+    "followReduced": "Follow system reduced motion",
+    "downgraded": "Your device is a bit slow, effects switched to {{level}}. Change it back in ✦.",
+    "speakFirst": "Invite {{low}} and {{high}} to speak first",
+    "spin": "Spin to pick who speaks first",
+    "spinResult": "{{name}} speaks first",
+    "throwPlane": "Throw a paper plane",
+    "reactions": "Reactions",
+    "react": "Send {{emoji}}",
+    "countdown": "Countdown {{n}}",
+    "stamp": "Finalized"
   }
 }
