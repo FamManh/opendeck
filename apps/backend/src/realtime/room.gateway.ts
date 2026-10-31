@@ -17,6 +17,7 @@ export type CmdAck = { ok: true } | { ok: false; code: string }
 const CLIENT_CMDS = new Set<Command['type']>([
   'rename', 'setRole', 'transferHost', 'setSuccessor', 'kick', 'approve', 'reject', 'setAccess',
   'addItems', 'startRound', 'vote', 'reveal', 'revote', 'reason', 'finalize',
+  'setRevealRule', 'editItem', 'deleteItem', 'startSession', 'ask', 'answerQuestion', 'addNote',
 ])
 const SERVER_ONLY = new Set(['join', 'disconnect', 'tick'])
 

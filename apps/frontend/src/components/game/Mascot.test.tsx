@@ -9,7 +9,7 @@ test.each(SPECIES.flatMap(sp => MASCOT_STATES.map(st => [sp, st] as const)))('re
   expect(root.querySelectorAll('svg')).toHaveLength(3)
 })
 
-test('covers 8 species x 5 states', () => {
+test('covers 8 species x 6 states', () => {
   expect(SPECIES).toHaveLength(8)
-  expect(MASCOT_STATES).toHaveLength(5)
+  expect(MASCOT_STATES).toHaveLength(6)
 })

@@ -10,8 +10,8 @@ export type Step =
   | { at: number; kind: 'slideDone'; itemId: string }
   | { at: number; kind: 'moment'; name: 'consensus' | 'twist' }
 
-export const COUNT_STEP_MS = 650
-export const FIRST_FLIP_MS = 1950
+export const COUNT_STEP_MS = 500
+export const FIRST_FLIP_MS = 1500
 export const FLIP_STEP_MS = 150
 export const FLIP_TOTAL_MAX_MS = 1000
 export const RESULTS_AFTER_FLIP_MS = 650

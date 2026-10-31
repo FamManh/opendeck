@@ -4,13 +4,15 @@
 @keyframes ppReact { 0% { transform: translateY(0) scale(0.6); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-160px) scale(1.2); opacity: 0 } }
 @keyframes ppPlane { 0% { transform: translate(0, 0) rotate(0deg); opacity: 1 } 100% { transform: translate(var(--dx, 80px), var(--dy, -40px)) rotate(25deg); opacity: 0 } }
 @keyframes ppSpot { 0% { transform: scale(0.7); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+@keyframes ppCone { from { opacity: 0 } to { opacity: 0.55 } }
 @keyframes ppFade { from { opacity: 0 } to { opacity: 1 } }
 
 @theme inline {
-  --animate-pp-count: ppCountPop 650ms ease-out both;
+  --animate-pp-count: ppCountPop 500ms ease-out both;
   --animate-pp-stamp: ppStamp 800ms cubic-bezier(.3, .7, .3, 1.3) both;
   --animate-pp-react: ppReact 1600ms ease-out both;
   --animate-pp-plane: ppPlane 1200ms ease-in-out both;
   --animate-pp-spot: ppSpot 1500ms ease-out both;
+  --animate-pp-cone: ppCone 700ms ease-out both;
   --animate-pp-fade: ppFade 200ms linear both;
 }

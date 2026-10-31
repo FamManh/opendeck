@@ -50,7 +50,7 @@ export class RoomPersistenceService implements OnModuleInit, OnModuleDestroy {
 
   private onUpdate(u: RoomUpdate): void {
     this.scheduleLive(u.slug)
-    const relevant = u.events.filter(e => ['itemsAdded', 'revealed', 'finalized', 'accessChanged'].includes(e.type))
+    const relevant = u.events.filter(e => ['itemsAdded', 'itemsChanged', 'itemDeleted', 'revealed', 'finalized', 'accessChanged'].includes(e.type))
     if (relevant.length > 0) this.enqueue(() => this.applyEvents(u.slug, u.state, relevant))
   }
 
@@ -88,7 +88,8 @@ export class RoomPersistenceService implements OnModuleInit, OnModuleDestroy {
     const ref = await this.ref(slug)
     if (!ref) return
     for (const e of events) {
-      if (e.type === 'itemsAdded') await this.upsertItems(ref, state, e.ids)
+      if (e.type === 'itemsAdded' || e.type === 'itemsChanged') await this.upsertItems(ref, state, e.ids)
+      else if (e.type === 'itemDeleted') await this.items.delete({ roomId: ref.id, order: itemOrder(e.id) })
       else if (e.type === 'revealed') await this.saveVotes(ref, state, e.itemId, e.number)
       else if (e.type === 'finalized') await this.saveOutcome(ref, state, e.itemId)
       else if (e.type === 'accessChanged') await this.rooms.update({ id: ref.id }, { locked: e.locked, requireApproval: e.requireApproval })

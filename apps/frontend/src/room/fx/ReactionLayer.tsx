@@ -30,7 +30,7 @@ export function ReactionLayer() {
   )
 }
 
-export function ReactionBar() {
+export function ReactionBar({ vertical = false }: { vertical?: boolean }) {
   const { t } = useTranslation()
   const sendFx = useRoomStore(s => s.sendFx)
   const hits = useRef<number[]>([])
@@ -49,7 +49,7 @@ export function ReactionBar() {
   }
 
   return (
-    <div role="group" aria-label={t('fx.reactions')} className="flex justify-center gap-2">
+    <div role="group" aria-label={t('fx.reactions')} className={`flex gap-2 ${vertical ? 'flex-col justify-center rounded-full bg-muted p-1.5' : 'justify-center'}`}>
       {EMOJIS.map(e => (
         <button
           key={e}
@@ -57,7 +57,7 @@ export function ReactionBar() {
           disabled={blocked}
           aria-label={t('fx.react', { emoji: e })}
           onClick={() => send(e)}
-          className="size-11 rounded-full bg-muted text-xl transition-opacity active:scale-90 disabled:opacity-40 md:size-10"
+          className={`size-10 rounded-full text-xl transition-opacity active:scale-90 disabled:opacity-40 ${vertical ? 'bg-background' : 'bg-muted'}`}
         >{e}</button>
       ))}
     </div>

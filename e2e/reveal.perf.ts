@@ -41,6 +41,7 @@ test(`reveal with ${GUESTS + 1} players under 4x CPU throttle`, async ({ browser
   const guests = []
   for (let i = 0; i < GUESTS; i++) {
     const ctx = await browser.newContext()
+    await ctx.addInitScript(() => localStorage.setItem('opendeck.lang', 'en'))
     const p = await ctx.newPage()
     await p.goto(url)
     await p.locator('#join-name').fill(`G${i}`)

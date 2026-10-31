@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "OpenDeck — Planning Poker",
+    "title": "Planning Poker",
     "language": "Language",
     "themeLight": "Switch to light theme",
     "themeDark": "Switch to dark theme"
@@ -89,11 +89,19 @@
     "BAD_TARGET": "You can't throw at this person.",
     "TARGET_NOT_IDLE": "They already picked a card.",
     "NOT_DISCUSSION": "This round doesn't need discussion.",
-    "ALREADY_SPUN": "The wheel was already used this round."
+    "ALREADY_SPUN": "The wheel was already used this round.",
+    "NO_VOTES": "There are no votes to reveal yet.",
+    "ITEM_NOT_EDITABLE": "A locked task can't be edited.",
+    "ITEM_HAS_ROUNDS": "This task already has voting rounds, so it can't be deleted.",
+    "QNA_EMPTY": "The text is empty.",
+    "QNA_TOO_LONG": "The text is too long.",
+    "QNA_LIMIT": "This task has reached the maximum number of entries.",
+    "UNKNOWN_QUESTION": "Question not found.",
+    "NOT_OWNER": "Only the room owner can do this."
   },
   "auth": {
     "loginTitle": "Welcome back.",
-    "loginSub": "Log in to create rooms and host sessions.",
+    "loginSub": "Sign in to create rooms and host.",
     "registerTitle": "Create an account.",
     "registerSub": "An account lets you create rooms and host them.",
     "tabLogin": "Log in",
@@ -165,7 +173,11 @@
     "on": "On",
     "off": "Off",
     "preview": "Preview",
-    "submit": "Create room"
+    "submit": "Create room",
+    "timer": "Countdown per round",
+    "minutes": "{{n}} min",
+    "autoReveal": "Reveal when everyone has voted",
+    "autoRevealHint": "Reveals as soon as everyone online has picked a card."
   },
   "join": {
     "title": "Join {{name}}.",
@@ -197,7 +209,8 @@
       "thinking": "Thinking",
       "offline": "Offline",
       "observer": "Observing",
-      "novote": "No vote"
+      "novote": "No vote",
+      "idle": "Ready"
     },
     "fanLabel": "Pick your card",
     "observing": "You are observing this round.",
@@ -222,7 +235,7 @@
     "soon": "Coming soon.",
     "noRound": "No round yet.",
     "reasonLabel": "Your reason",
-    "reasonPlaceholder": "Why this card? (shown after reveal)",
+    "reasonPlaceholder": "Why this card? (shown after the reveal)",
     "reasonSave": "Save reason",
     "noReasons": "Nobody left a reason.",
     "reconnecting": "Connection lost, reconnecting…",
@@ -235,7 +248,30 @@
     "joinRequest": "{{name}} wants to join",
     "approve": "Let in",
     "reject": "Decline",
-    "openPanel": "Open task list"
+    "openPanel": "Open task list",
+    "peopleCount": "{{players}} players · {{observers}} observers",
+    "votedCount": "{{voted}}/{{total}} voted",
+    "reasonPlaceholderAfter": "Add a one-line reason for this round",
+    "rejected": "The host didn't let you in",
+    "rejectedNote": "Your request to join was declined.",
+    "hostless": "This room has no host. Someone with an account needs to join to take over.",
+    "hostlessClaim": "This room has no host. Reload the page to take over.",
+    "switchTitle": "Switch to another task?",
+    "switchBody": "This round hasn't been revealed, so the votes cast so far will be discarded.",
+    "switchConfirm": "Switch task",
+    "yourCards": "Your cards",
+    "send": "Send",
+    "noQuestions": "No questions for this task yet.",
+    "noNotes": "No notes for this task yet.",
+    "formerMember": "Former member",
+    "answered": "Answered",
+    "markAnswered": "Mark as answered",
+    "markUnanswered": "Unmark",
+    "askLabel": "Ask a question",
+    "askPlaceholder": "Ask a question about this task…",
+    "noteLabel": "Add a note",
+    "notePlaceholder": "Add a note for this task…",
+    "showHistory": "Show rounds of {{title}}"
   },
   "results": {
     "average": "Average",
@@ -275,7 +311,10 @@
     "count": "{{count}} tasks will be added",
     "submit": "Add tasks",
     "errTooMany": "The file has more than 500 rows.",
-    "errCsv": "Could not read the CSV (missing title column)."
+    "errCsv": "Could not read the CSV (missing title column).",
+    "editTitle": "Edit task",
+    "editItem": "Edit {{title}}",
+    "deleteItem": "Delete {{title}}"
   },
   "summary": {
     "badge": "Session over",
@@ -295,7 +334,9 @@
     "colTask": "Task",
     "colFinal": "Final",
     "colRounds": "Rounds",
-    "notFinal": "—"
+    "notFinal": "—",
+    "colNotes": "Notes",
+    "colSpecial": "Special cards"
   },
   "fx": {
     "open": "Effects settings",
@@ -315,13 +356,54 @@
     "sound": "Sound",
     "followReduced": "Follow system reduced motion",
     "downgraded": "Your device is a bit slow, effects switched to {{level}}. Change it back in ✦.",
-    "speakFirst": "Invite {{low}} and {{high}} to speak first",
     "spin": "Spin to pick who speaks first",
     "spinResult": "{{name}} speaks first",
     "throwPlane": "Throw a paper plane",
     "reactions": "Reactions",
     "react": "Send {{emoji}}",
     "countdown": "Countdown {{n}}",
-    "stamp": "Finalized"
+    "stamp": "Finalized",
+    "twistBadge": "Plot twist",
+    "twistTitle": "{{low}} and {{high}} see this task very differently.",
+    "twistBody": "Let them share their view first. A big gap is often where something the team hasn't seen yet is hiding.",
+    "viewResults": "View the results"
+  },
+  "profile": {
+    "title": "Change name and character",
+    "sub": "Everyone in the room sees the change right away.",
+    "save": "Save"
+  },
+  "people": {
+    "open": "Members",
+    "title": "Members",
+    "sub": "People currently in this room.",
+    "hostHint": "Change roles, hand over host or remove someone from the room.",
+    "voter": "Voter",
+    "successor": "Next host",
+    "needAccount": "A host needs an account.",
+    "makeVoter": "Let {{name}} vote",
+    "makeObserver": "Make {{name}} an observer",
+    "makeHost": "Make {{name}} the host",
+    "makeSuccessor": "Make {{name}} the next host",
+    "kick": "Remove {{name}} from the room",
+    "kickTitle": "Remove {{name}} from the room?",
+    "kickBody": "They won't be able to rejoin this room.",
+    "kickConfirm": "Remove"
+  },
+  "settings": {
+    "open": "Room settings",
+    "title": "Room settings",
+    "hostTitle": "For the host",
+    "nextRound": "Applies from the next round.",
+    "lock": "Lock room (no new people)",
+    "setPassword": "Set room password",
+    "changePassword": "Change room password",
+    "removePassword": "Remove password",
+    "passwordSaved": "Password saved. People already in the room stay.",
+    "passwordRemoved": "Password removed.",
+    "newSession": "Start new session",
+    "newSessionTitle": "Start a new session?",
+    "newSessionBody": "The task list, results and seats of people who left will be removed from the room. Export a CSV first if you need to keep them.",
+    "newSessionConfirm": "Start new session"
   }
 }

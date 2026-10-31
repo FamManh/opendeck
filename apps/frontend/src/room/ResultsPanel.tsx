@@ -32,7 +32,7 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
   const ordinal = scale.kind !== 'numeric'
 
   return (
-    <div data-slot="results" className="flex flex-col gap-4 rounded-3xl bg-muted p-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-7 md:px-6">
+    <div data-slot="results" className="flex flex-col gap-3 rounded-3xl bg-muted p-3 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-6 md:px-5">
       <div className="flex items-center gap-4">
         <div className="flex flex-col">
           {ordinal ? (
@@ -54,7 +54,7 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
         </div>
         {!ordinal && stats.nearestCard && (
           <div className="flex flex-col items-center gap-1">
-            <div className="h-[76px] w-[54px]"><PokerCard value={stats.nearestCard.id} compact /></div>
+            <div className="h-[62px] w-11"><PokerCard value={stats.nearestCard.id} compact /></div>
             <div className="text-xs font-semibold text-muted-foreground">{t('results.nearest')}</div>
           </div>
         )}
@@ -75,35 +75,37 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
             {t('results.discussion', { low: discussion.low.join(', '), high: discussion.high.join(', ') })}
           </div>
         )}
-        <ul data-slot="distribution" className="flex items-end gap-3.5 overflow-x-auto">
+        <ul data-slot="distribution" className="flex items-end gap-3 overflow-x-auto">
           {stats.distribution.map(d => (
             <li key={d.card.id} className="flex flex-none flex-col items-center gap-1">
               <span className="text-[13px] font-semibold" aria-label={t('results.count', { card: cardLabel(t, d.card.id, d.card.label), count: d.count })}>{d.count}</span>
-              <div className={`w-7 rounded-t-lg rounded-b-sm transition-[transform] duration-300 ${d.count === maxCount ? 'bg-primary' : 'bg-muted-foreground/40'}`} style={{ height: `${Math.max(12, (d.count / maxCount) * 64)}px` }} />
-              <div className="h-10 w-7"><PokerCard value={d.card.id} compact /></div>
+              <div className={`w-7 rounded-t-lg rounded-b-sm transition-[transform] duration-300 ${d.count === maxCount ? 'bg-primary' : 'bg-muted-foreground/40'}`} style={{ height: `${Math.max(8, (d.count / maxCount) * 34)}px` }} />
+              <div className="h-9 w-[26px]"><PokerCard value={d.card.id} compact /></div>
             </li>
           ))}
         </ul>
       </div>
 
       {isHost && (
-        <div className="flex flex-col gap-2.5 md:w-[340px]">
+        <div className="flex flex-col gap-2 md:w-[400px]">
           <div className="text-[13px] font-semibold text-muted-foreground">{t('results.finalHint')}</div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className={`flex gap-1 ${scale.cards.length > 8 ? 'flex-wrap' : ''}`}>
             {scale.cards.map(c => (
               <button
                 key={c.id}
                 type="button"
                 aria-pressed={!custom.trim() && value === c.id}
                 onClick={() => { setPicked(c.id); setCustom('') }}
-                className={`h-11 min-w-11 flex-1 rounded-full border-2 px-2 text-sm font-semibold ${!custom.trim() && value === c.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'}`}
+                className={`h-11 min-w-9 flex-1 rounded-full border-2 px-1 text-sm font-semibold md:h-9 ${!custom.trim() && value === c.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'}`}
               >{c.label}</button>
             ))}
           </div>
-          <Input value={custom} onChange={e => setCustom(e.target.value)} placeholder={t('results.customValue')} aria-label={t('results.customValue')} maxLength={20} />
-          <div className="flex gap-2">
+          <Input className="md:hidden" value={custom} onChange={e => setCustom(e.target.value)} placeholder={t('results.customValue')} aria-label={t('results.customValue')} maxLength={20} />
+          {/* Pinned above the phone's bottom bar so the host never has to scroll to lock a score. */}
+          <div className="flex gap-2 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:items-center max-md:py-2.5 max-md:pr-3 max-md:pl-[92px]">
+            <Input className="w-28 flex-none max-md:hidden" value={custom} onChange={e => setCustom(e.target.value)} placeholder={t('results.customValue')} aria-label={t('results.customValue')} maxLength={20} />
             <Button variant="outline" className="flex-1" onClick={onRevote}><RotateCcw />{t('results.revote')}</Button>
-            <Button className="flex-[1.3]" disabled={!value} onClick={() => onFinalize(value)}>{t('results.finalize')}</Button>
+            <Button className="flex-[1.2]" disabled={!value} onClick={() => onFinalize(value)}>{t('results.finalize')}</Button>
           </div>
         </div>
       )}

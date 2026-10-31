@@ -5,6 +5,8 @@ export const HOST_OFFLINE_MS = 60_000
 export const REASON_MAX = 200
 export const NAME_MAX = 40
 export const TIMER_MAX_SEC = 3600
+export const QNA_TEXT_MAX = 200
+export const QNA_PER_ITEM_MAX = 100
 
 export type Role = 'voter' | 'observer'
 export interface JoinInfo { id: string; userId: string | null; name: string; avatar: string; role: Role }
@@ -19,6 +21,8 @@ export interface Round {
   votes: Record<string, string>; reasons: Record<string, string>
   deadline: number | null; stats: RoundStats | null
 }
+export interface Question { id: string; itemId: string; pid: string; text: string; at: number; answered: boolean }
+export interface Note { id: string; itemId: string; pid: string; text: string; at: number }
 export interface Outcome { itemId: string; value: string; note: string; decidedBy: string; decidedAt: number; rounds: number }
 export interface RevealRule { onAllVoted: boolean; timerSec: number | null }
 export interface RoomAccess { locked: boolean; requireApproval: boolean }
@@ -39,6 +43,9 @@ export interface RoomState {
   current: Round | null
   history: Round[]                // chỉ chứa vòng đã lật
   outcomes: Outcome[]
+  questions: Question[]
+  notes: Note[]
+  qnaSeq: number
 }
 export interface NewItem { title: string; description?: string; externalRef?: string | null }
 export interface CreateRoomOptions {
@@ -62,7 +69,14 @@ export type Command =
   | { type: 'approve'; pid: string; target: string }
   | { type: 'reject'; pid: string; target: string }
   | { type: 'setAccess'; pid: string; locked?: boolean; requireApproval?: boolean }
+  | { type: 'setRevealRule'; pid: string; onAllVoted?: boolean; timerSec?: number | null }
   | { type: 'addItems'; pid: string; items: NewItem[] }
+  | { type: 'editItem'; pid: string; itemId: string; title?: string; description?: string; externalRef?: string | null }
+  | { type: 'deleteItem'; pid: string; itemId: string }
+  | { type: 'startSession'; pid: string }
+  | { type: 'ask'; pid: string; text: string }
+  | { type: 'answerQuestion'; pid: string; questionId: string; answered: boolean }
+  | { type: 'addNote'; pid: string; text: string }
   | { type: 'startRound'; pid: string; itemId: string; timerSec?: number }
   | { type: 'vote'; pid: string; cardId: string | null }
   | { type: 'reveal'; pid: string }
@@ -78,6 +92,9 @@ export type DomainEvent =
   | { type: 'hostChanged'; from: string | null; to: string | null; reason: 'manual' | 'timeout' | 'claimed' }
   | { type: 'accessChanged'; locked: boolean; requireApproval: boolean }
   | { type: 'itemsAdded'; ids: string[] }
+  | { type: 'itemsChanged'; ids: string[] }
+  | { type: 'itemDeleted'; id: string }
+  | { type: 'sessionStarted' }
   | { type: 'roundStarted'; itemId: string; number: number }
   | { type: 'revealed'; itemId: string; number: number; auto: boolean }
   | { type: 'discussionNeeded'; lowPids: string[]; highPids: string[] }

@@ -7,7 +7,7 @@ import { createRoomSocket, type RoomSocket, type SocketFactory } from '@/realtim
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 export type ClientCommand = DistributiveOmit<Exclude<Command, { type: 'join' | 'disconnect' | 'tick' }>, 'pid'>
-export type Connection = 'connecting' | 'online' | 'reconnecting' | 'pending' | 'kicked'
+export type Connection = 'connecting' | 'online' | 'reconnecting' | 'pending' | 'kicked' | 'rejected'
 export interface ApprovalRequest { pid: string; name: string; avatar: string }
 
 const ACK_TIMEOUT_MS = 8000
@@ -67,16 +67,15 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     s.on('fx:thrown', (p: { from: string; target: string; kind: 'paper' | 'plane' }) => { if (socket === s) fxRuntime.addPlane(p) })
     s.on('fx:spun', (p: { chosen: 'low' | 'high'; pid: string; turns: number }) => { if (socket === s) fxRuntime.setSpin(p) })
     s.on('approval:pending', live(() => set({ connection: 'pending' })))
-    const gone = live(() => set({ connection: 'kicked' }))
-    s.on('kicked', gone)
-    s.on('rejected', gone)
+    s.on('kicked', live(() => set({ connection: 'kicked' })))
+    s.on('rejected', live(() => set({ connection: 'rejected' })))
     s.on('conn:error', (e: { code: string }) => { if (socket === s) set({ connError: e.code, connection: e.code === 'banned' ? 'kicked' : get().connection }) })
     s.on('approval:request', (r: ApprovalRequest) => {
       if (socket === s) set(st => ({ approvalRequests: [...st.approvalRequests.filter(x => x.pid !== r.pid), r] }))
     })
     const lost = live(() => {
       const { connection, connError } = get()
-      if (connection === 'kicked' || connError) return
+      if (connection === 'kicked' || connection === 'rejected' || connError) return
       if (get().state || connection === 'online') set({ connection: 'reconnecting' })
     })
     s.on('disconnect', (reason: string) => { if (reason !== 'io client disconnect') lost() })

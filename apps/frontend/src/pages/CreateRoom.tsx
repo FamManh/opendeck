@@ -11,6 +11,7 @@ import { PRESET_SCALES, SPECIAL_IDS, type SpecialId } from '@/domain'
 import { api } from '@/lib/api'
 import { errorMessage } from '@/lib/errors'
 import { useMe } from '@/lib/useMe'
+import { TimerChips } from '@/room/TimerChips'
 
 type PresetId = keyof typeof PRESET_SCALES
 type DeckChoice = PresetId | 'custom'
@@ -32,6 +33,8 @@ export function CreateRoomPage() {
   const [usePassword, setUsePassword] = useState(false)
   const [password, setPassword] = useState('')
   const [requireApproval, setRequireApproval] = useState(false)
+  const [timerSec, setTimerSec] = useState<number | null>(null)
+  const [onAllVoted, setOnAllVoted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -56,6 +59,7 @@ export function CreateRoomPage() {
         enabledSpecials: specials,
         ...(usePassword ? { password } : {}),
         requireApproval,
+        revealRule: { onAllVoted, timerSec },
       })
       navigate(`/r/${slug}`)
     } catch (err) {
@@ -140,6 +144,19 @@ export function CreateRoomPage() {
                 <Input id="room-password" type="password" autoComplete="new-password" maxLength={128} value={password} onChange={e => setPassword(e.target.value)} />
               </div>
             )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span id="create-timer" className="text-[13px] font-semibold">{t('createRoom.timer')}</span>
+            <TimerChips labelledBy="create-timer" value={timerSec} onChange={setTimerSec} />
+          </div>
+
+          <div className="flex items-center gap-4 rounded-3xl bg-muted px-5 py-4">
+            <div className="flex-1">
+              <Label htmlFor="auto-reveal" className="text-[15px] font-[650]">{t('createRoom.autoReveal')}</Label>
+              <p className="text-sm text-muted-foreground">{t('createRoom.autoRevealHint')}</p>
+            </div>
+            <Switch id="auto-reveal" checked={onAllVoted} onCheckedChange={setOnAllVoted} />
           </div>
 
           <div className="flex items-center gap-4 rounded-3xl bg-muted px-5 py-4">

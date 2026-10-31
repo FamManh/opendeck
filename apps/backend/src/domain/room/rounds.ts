@@ -2,7 +2,7 @@ import { deckOf } from '../deck'
 import { DomainError } from '../errors'
 import { computeRoundStats } from '../stats'
 import { requireHost, requireParticipant } from './guards'
-import { REASON_MAX, TIMER_MAX_SEC, type DomainEvent, type NewItem, type Round, type RoomState } from './types'
+import { QNA_PER_ITEM_MAX, QNA_TEXT_MAX, REASON_MAX, TIMER_MAX_SEC, type DomainEvent, type NewItem, type Round, type RoomState } from './types'
 
 type Ev = DomainEvent[]
 
@@ -22,6 +22,63 @@ export function addItems(s: RoomState, pid: string, items: NewItem[], ev: Ev): v
 
 const roundsOf = (s: RoomState, itemId: string) => s.history.filter(r => r.itemId === itemId).length
 
+export function editItem(s: RoomState, pid: string, patch: { itemId: string; title?: string; description?: string; externalRef?: string | null }, ev: Ev): void {
+  requireHost(s, pid)
+  const item = s.items.find(i => i.id === patch.itemId)
+  if (!item) throw new DomainError('UNKNOWN_ITEM')
+  if (item.status !== 'pending') throw new DomainError('ITEM_NOT_EDITABLE')
+  if (patch.title !== undefined) {
+    const title = patch.title.trim()
+    if (!title) throw new DomainError('ITEM_TITLE_EMPTY')
+    item.title = title
+  }
+  if (patch.description !== undefined) item.description = patch.description.trim()
+  if (patch.externalRef !== undefined) item.externalRef = patch.externalRef?.trim() || null
+  ev.push({ type: 'itemsChanged', ids: [item.id] })
+}
+
+export function deleteItem(s: RoomState, pid: string, itemId: string, ev: Ev): void {
+  requireHost(s, pid)
+  if (!s.items.some(i => i.id === itemId)) throw new DomainError('UNKNOWN_ITEM')
+  if (s.current?.itemId === itemId || roundsOf(s, itemId) > 0) throw new DomainError('ITEM_HAS_ROUNDS')
+  s.items = s.items.filter(i => i.id !== itemId)
+  s.questions = s.questions.filter(q => q.itemId !== itemId)
+  s.notes = s.notes.filter(n => n.itemId !== itemId)
+  ev.push({ type: 'itemDeleted', id: itemId })
+}
+
+/** Clears the live session for the next sprint. `itemSeq` keeps counting because stored item rows are keyed by it. */
+export function startSession(s: RoomState, pid: string, ev: Ev): void {
+  requireHost(s, pid)
+  s.items = []
+  s.current = null
+  s.history = []
+  s.outcomes = []
+  s.questions = []
+  s.notes = []
+  for (const p of Object.values(s.participants)) if (!p.online && p.id !== pid) delete s.participants[p.id]
+  if (s.successorId && !s.participants[s.successorId]) s.successorId = null
+  ev.push({ type: 'sessionStarted' })
+}
+
+/** A round nobody voted in (timer ran out) carries no information, so it stays out of the history. */
+function archive(s: RoomState, r: Round): void {
+  if (Object.keys(r.votes).length > 0) s.history.push(r)
+}
+
+function validTimer(timer: number | null): boolean {
+  return timer === null || (Number.isInteger(timer) && timer > 0 && timer <= TIMER_MAX_SEC)
+}
+
+export function setRevealRule(s: RoomState, pid: string, patch: { onAllVoted?: boolean; timerSec?: number | null }): void {
+  requireHost(s, pid)
+  if (patch.onAllVoted !== undefined) s.revealRule.onAllVoted = patch.onAllVoted === true
+  if (patch.timerSec !== undefined) {
+    if (!validTimer(patch.timerSec)) throw new DomainError('TIMER_INVALID')
+    s.revealRule.timerSec = patch.timerSec
+  }
+}
+
 function openRound(s: RoomState, itemId: string, timerSec: number | null, now: number, ev: Ev): void {
   const number = roundsOf(s, itemId) + 1
   s.current = { itemId, number, status: 'voting', votes: {}, reasons: {}, deadline: timerSec === null ? null : now + timerSec * 1000, stats: null }
@@ -32,9 +89,9 @@ export function startRound(s: RoomState, pid: string, itemId: string, timerSec: 
   requireHost(s, pid)
   if (!s.items.some(i => i.id === itemId)) throw new DomainError('UNKNOWN_ITEM')
   const timer = timerSec ?? s.revealRule.timerSec
-  if (timer !== null && !(Number.isInteger(timer) && timer > 0 && timer <= TIMER_MAX_SEC)) throw new DomainError('TIMER_INVALID')
+  if (!validTimer(timer)) throw new DomainError('TIMER_INVALID')
   // An unrevealed round is discarded rather than archived, so history never stores secret votes.
-  if (s.current?.status === 'revealed') s.history.push(s.current)
+  if (s.current?.status === 'revealed') archive(s, s.current)
   openRound(s, itemId, timer, now, ev)
 }
 
@@ -84,13 +141,15 @@ export function vote(s: RoomState, pid: string, cardId: string | null, ev: Ev): 
 
 export function revealCmd(s: RoomState, pid: string, ev: Ev): void {
   requireHost(s, pid)
-  reveal(s, votingRound(s), false, ev)
+  const r = votingRound(s)
+  if (Object.keys(r.votes).length === 0) throw new DomainError('NO_VOTES')
+  reveal(s, r, false, ev)
 }
 
 export function revote(s: RoomState, pid: string, now: number, ev: Ev): void {
   requireHost(s, pid)
   const r = revealedRound(s)
-  s.history.push(r)
+  archive(s, r)
   openRound(s, r.itemId, s.revealRule.timerSec, now, ev)
 }
 
@@ -103,6 +162,43 @@ export function reason(s: RoomState, pid: string, text: string): void {
   if (t.length > REASON_MAX) throw new DomainError('REASON_TOO_LONG')
   if (t) r.reasons[pid] = t
   else delete r.reasons[pid]
+}
+
+function qnaText(list: readonly { itemId: string }[], itemId: string, text: string): string {
+  const t = text.trim()
+  if (!t) throw new DomainError('QNA_EMPTY')
+  if (t.length > QNA_TEXT_MAX) throw new DomainError('QNA_TOO_LONG')
+  if (list.filter(x => x.itemId === itemId).length >= QNA_PER_ITEM_MAX) throw new DomainError('QNA_LIMIT')
+  return t
+}
+
+function currentItemId(s: RoomState): string {
+  if (!s.current) throw new DomainError('NO_ROUND')
+  return s.current.itemId
+}
+
+export function ask(s: RoomState, pid: string, text: string, now: number): void {
+  requireParticipant(s, pid)
+  const itemId = currentItemId(s)
+  const t = qnaText(s.questions, itemId, text)
+  s.qnaSeq += 1
+  s.questions.push({ id: `q${s.qnaSeq}`, itemId, pid, text: t, at: now, answered: false })
+}
+
+export function answerQuestion(s: RoomState, pid: string, questionId: string, answered: boolean): void {
+  requireParticipant(s, pid)
+  const q = s.questions.find(x => x.id === questionId)
+  if (!q) throw new DomainError('UNKNOWN_QUESTION')
+  if (q.pid !== pid && s.hostId !== pid) throw new DomainError('NOT_HOST')
+  q.answered = answered === true
+}
+
+export function addNote(s: RoomState, pid: string, text: string, now: number): void {
+  requireParticipant(s, pid)
+  const itemId = currentItemId(s)
+  const t = qnaText(s.notes, itemId, text)
+  s.qnaSeq += 1
+  s.notes.push({ id: `n${s.qnaSeq}`, itemId, pid, text: t, at: now })
 }
 
 export function finalize(s: RoomState, pid: string, value: string, note: string | undefined, now: number, ev: Ev): void {

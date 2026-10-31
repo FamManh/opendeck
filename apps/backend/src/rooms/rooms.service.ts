@@ -69,7 +69,7 @@ export class RoomsService {
 
   private initialState(id: string, user: User, scale: Scale, dto: CreateRoomDto, now: number): RoomState {
     const state = createRoom({
-      id, scale, now, ...(dto.enabledSpecials && { enabledSpecials: dto.enabledSpecials }), access: { requireApproval: dto.requireApproval ?? false },
+      id, scale, now, ...(dto.enabledSpecials && { enabledSpecials: dto.enabledSpecials }), access: { requireApproval: dto.requireApproval ?? false }, ...(dto.revealRule && { revealRule: { onAllVoted: dto.revealRule.onAllVoted, timerSec: dto.revealRule.timerSec } }),
       owner: { id: `u:${user.id}`, userId: user.id, name: user.displayName, avatar: user.avatar ?? DEFAULT_AVATAR, role: 'voter' },
     })
     // Chủ phòng chưa kết nối: không để ghế host "online" vĩnh viễn.

@@ -83,16 +83,22 @@ function SummaryView({ slug, name, state }: { slug: string; name: string; state:
 
         <section className="rounded-3xl bg-muted p-4 md:p-6">
           <h2 className="mb-3 text-lg font-[650]">{t('summary.results')}</h2>
-          <table className="w-full text-left text-sm">
-            <thead className="text-[13px] text-muted-foreground">
-              <tr><th className="py-2 font-semibold">{t('summary.colTask')}</th><th className="py-2 font-semibold">{t('summary.colFinal')}</th><th className="py-2 text-right font-semibold">{t('summary.colRounds')}</th></tr>
+          <table className="w-full text-left text-sm max-md:block">
+            <thead className="text-[13px] text-muted-foreground max-md:sr-only">
+              <tr><th className="py-2 font-semibold">{t('summary.colTask')}</th><th className="py-2 font-semibold">{t('summary.colFinal')}</th><th className="py-2 text-right font-semibold">{t('summary.colRounds')}</th><th className="py-2 pl-4 font-semibold">{t('summary.colNotes')}</th><th className="py-2 pl-4 font-semibold">{t('summary.colSpecial')}</th></tr>
             </thead>
-            <tbody>
+            <tbody className="max-md:block">
               {rows.map((r, i) => (
-                <tr key={i} data-slot="summary-row" className="border-t border-border">
-                  <td className="py-2.5 pr-3"><span className="mr-2 text-xs font-semibold text-muted-foreground">{r.key ?? ''}</span>{r.title}</td>
-                  <td data-slot="final" className="py-2.5 font-semibold">{r.final || t('summary.notFinal')}</td>
-                  <td data-slot="rounds" className="py-2.5 text-right">{r.rounds}</td>
+                <tr key={i} data-slot="summary-row" className="border-t border-border align-top max-md:flex max-md:flex-wrap max-md:gap-x-4 max-md:gap-y-1 max-md:py-3">
+                  <td className="py-2.5 pr-3 max-md:w-full max-md:p-0"><span className="mr-2 text-xs font-semibold text-muted-foreground">{r.key ?? ''}</span>{r.title}</td>
+                  <td className="py-2.5 max-md:p-0"><span className="mr-1 text-xs text-muted-foreground md:hidden">{t('summary.colFinal')}</span><span data-slot="final" className="font-semibold">{r.final || t('summary.notFinal')}</span></td>
+                  <td className="py-2.5 text-right max-md:p-0 max-md:text-left"><span className="mr-1 text-xs text-muted-foreground md:hidden">{t('summary.colRounds')}</span><span data-slot="rounds">{r.rounds}</span></td>
+                  <td data-slot="notes" className="max-w-[320px] py-2.5 pl-4 text-[13px] whitespace-pre-line text-muted-foreground empty:hidden max-md:w-full max-md:max-w-none max-md:p-0">{r.notes}</td>
+                  <td className="py-2.5 pl-4 max-md:w-full max-md:p-0">
+                    <span data-slot="specials" className="flex flex-wrap gap-1">
+                      {r.specialCards.map(c => <span key={c} title={t(`cards.special.${c}`)} className="h-[34px] w-6"><PokerCard value={c} compact instant /></span>)}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

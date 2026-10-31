@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 export const SPECIES = ['cat', 'capybara', 'robot', 'dino', 'owl', 'bunny', 'koala', 'fox'] as const
 export type Species = (typeof SPECIES)[number]
-export const MASCOT_STATES = ['thinking', 'voted', 'sleeping', 'celebrating', 'away'] as const
+export const MASCOT_STATES = ['idle', 'thinking', 'voted', 'sleeping', 'celebrating', 'away'] as const
 export type MascotState = (typeof MASCOT_STATES)[number]
 
 export function isSpecies(v: unknown): v is Species {
@@ -95,6 +95,15 @@ const BODIES: Record<Species, ReactNode> = {
 }
 
 const FACES: Record<MascotState, ReactNode> = {
+  idle: (
+    <>
+      <circle cx="49" cy="59" r="5" fill="#1F2A44" />
+      <circle cx="73" cy="59" r="5" fill="#1F2A44" />
+      <circle cx="50.6" cy="57.3" r="1.6" fill="#fff" />
+      <circle cx="74.6" cy="57.3" r="1.6" fill="#fff" />
+      <path d="M54 84 Q60 89 66 84" stroke="#1F2A44" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+    </>
+  ),
   thinking: (
     <>
       <circle cx="49" cy="59" r="5" fill="#1F2A44" />

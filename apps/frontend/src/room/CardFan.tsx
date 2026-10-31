@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PokerCard } from '@/components/game/PokerCard'
 import { deckOf, isSpecialId, type Scale, type SpecialId } from '@/domain'
+import { useElementSize } from '@/lib/useElementSize'
+import { useIsMobile } from '@/lib/useIsMobile'
 import type { ClientCommand } from '@/store/roomStore'
 
 export interface CardFanProps {
@@ -12,11 +14,32 @@ export interface CardFanProps {
   send: (cmd: ClientCommand) => unknown
 }
 
+const CARD_W = 80
+const DRAG_START_PX = 8
+/** Dragging a card this far up counts as playing it on the table. */
+export const DROP_DISTANCE_PX = 60
+export const isDrop = (dy: number) => dy <= -DROP_DISTANCE_PX
+
+/** How far apart cards sit so the whole deck fits the row; the rest overlaps. */
+export function fanStep(count: number, width: number): number {
+  if (count < 2 || width <= 0) return CARD_W - 8
+  return Math.min(CARD_W - 8, (width - CARD_W - 32) / (count - 1))
+}
+
+interface Drag { id: string; startX: number; startY: number; dx: number; dy: number; moved: boolean }
+
 export function CardFan({ scale, enabledSpecials, myVote, observer = false, send }: CardFanProps) {
   const { t } = useTranslation()
+  const mobile = useIsMobile()
+  const { ref, size } = useElementSize<HTMLDivElement>({ w: 0, h: 0 })
+  const [drag, setDrag] = useState<Drag | null>(null)
+  const justDragged = useRef(false)
   const deck = deckOf(scale, enabledSpecials)
 
-  const pick = (cardId: string) => { void send({ type: 'vote', cardId: cardId === myVote ? null : cardId }) }
+  const pick = (cardId: string) => {
+    if (justDragged.current) { justDragged.current = false; return }
+    void send({ type: 'vote', cardId: cardId === myVote ? null : cardId })
+  }
 
   useEffect(() => {
     if (observer) return
@@ -32,13 +55,47 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  const onDown = (e: PointerEvent<HTMLButtonElement>, id: string) => {
+    if (e.button !== 0) return
+    setDrag({ id, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, moved: false })
+  }
+  const onMove = (e: PointerEvent<HTMLButtonElement>) => {
+    if (!drag) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    // On phones a sideways swipe scrolls the row; only an upward move picks the card up.
+    const moved = drag.moved || (mobile ? -dy > DRAG_START_PX : Math.hypot(dx, dy) > DRAG_START_PX)
+    if (moved && !drag.moved) e.currentTarget.setPointerCapture?.(e.pointerId)
+    setDrag({ ...drag, dx, dy, moved })
+  }
+  const onUp = (e: PointerEvent<HTMLButtonElement>) => {
+    if (!drag) return
+    const dy = e.clientY - drag.startY
+    if (drag.moved) {
+      justDragged.current = true
+      if (isDrop(dy) && drag.id !== myVote) void send({ type: 'vote', cardId: drag.id })
+    }
+    setDrag(null)
+  }
+
   if (observer) return null
   const mid = (deck.length - 1) / 2
+  const step = mobile ? CARD_W - 8 : fanStep(deck.length, size.w)
   return (
-    <div data-slot="card-fan" role="group" aria-label={t('room.fanLabel')} className="flex items-end justify-start gap-0 overflow-x-auto px-6 pt-6 pb-3 md:justify-center [&::-webkit-scrollbar]:hidden">
+    <div
+      ref={ref}
+      data-slot="card-fan"
+      role="group"
+      aria-label={t('room.fanLabel')}
+      className={`flex items-end px-4 [&::-webkit-scrollbar]:hidden ${mobile ? 'justify-start overflow-x-auto pt-2 pb-2' : 'justify-center pt-12 pb-2'}`}
+    >
       {deck.map((c, i) => {
         const selected = c.id === myVote
         const label = isSpecialId(c.id) ? t(`cards.special.${c.id}`) : c.label
+        const off = i - mid
+        const dragging = drag?.id === c.id && drag.moved
+        const lift = mobile ? (selected ? -6 : 0) : (selected ? -34 : 0) + (off * off - mid * mid) * 0.5
+        const turn = mobile || selected ? 0 : off * 2.5
         return (
           <button
             key={c.id}
@@ -46,8 +103,17 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
             aria-label={label}
             aria-pressed={selected}
             onClick={() => pick(c.id)}
-            style={{ transform: `translateY(${selected ? -18 : 0}px) rotate(${selected ? 0 : (i - mid) * 2.5}deg)` }}
-            className="-mx-1 h-[114px] w-20 flex-none cursor-pointer transition-transform duration-200 hover:-translate-y-2.5 focus-visible:outline-2 focus-visible:outline-ring"
+            onPointerDown={e => onDown(e, c.id)}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={() => setDrag(null)}
+            style={{
+              marginLeft: i === 0 ? 0 : step - CARD_W,
+              zIndex: dragging ? 30 : selected ? 20 : undefined,
+              transform: dragging ? `translate(${drag.dx}px, ${drag.dy}px) scale(1.05)` : `translateY(${lift}px) rotate(${turn}deg)`,
+              touchAction: mobile ? 'pan-x' : 'none',
+            }}
+            className={`relative h-[114px] w-20 flex-none cursor-grab select-none focus-visible:outline-2 focus-visible:outline-ring ${dragging ? '' : 'transition-transform duration-200 hover:-translate-y-2.5'}`}
           >
             <PokerCard value={c.id} selected={selected} dim={myVote !== null && !selected} />
           </button>

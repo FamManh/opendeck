@@ -25,7 +25,7 @@ export class AuthController {
     if (await this.users.findByEmail(dto.email)) throw new ConflictException({ code: 'EMAIL_TAKEN' })
     let user
     try {
-      user = await this.users.create({ email: dto.email, displayName: dto.displayName, passwordHash: await this.passwords.hash(dto.password) })
+      user = await this.users.create({ email: dto.email, displayName: dto.displayName, avatar: dto.avatar ?? null, passwordHash: await this.passwords.hash(dto.password) })
     } catch (e) {
       // Hai request đăng ký cùng email chạy đua: unique index chặn, trả cùng mã lỗi.
       if (e instanceof QueryFailedError && (e.driverError as { code?: string }).code === '23505')

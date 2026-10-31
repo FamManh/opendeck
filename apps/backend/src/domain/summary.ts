@@ -11,7 +11,12 @@ export function buildSummary(s: RoomState): Summary {
     const outcome = s.outcomes.find(o => o.itemId === item.id)
     const used = new Set(rounds.flatMap(r => Object.values(r.votes)))
     // §7: notes are reason texts only, never who wrote them.
-    const notes = [outcome?.note ?? '', ...rounds.flatMap(r => Object.values(r.reasons))].filter(Boolean)
+    const notes = [
+      outcome?.note ?? '',
+      ...rounds.flatMap(r => Object.values(r.reasons)),
+      ...s.notes.filter(n => n.itemId === item.id).map(n => n.text),
+      ...s.questions.filter(q => q.itemId === item.id).map(q => q.text),
+    ].filter(Boolean)
     return {
       key: item.externalRef,
       title: item.title,

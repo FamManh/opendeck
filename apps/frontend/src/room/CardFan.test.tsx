@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PRESET_SCALES, deckOf } from '@/domain'
-import { CardFan } from './CardFan'
+import { CardFan, fanStep, isDrop } from './CardFan'
 
 const base = { scale: PRESET_SCALES.fibonacci, enabledSpecials: ['coffee', 'bug'] as ('coffee' | 'bug')[], myVote: null }
 
@@ -34,4 +34,16 @@ test('keys 1-9 pick the matching card', async () => {
   render(<CardFan {...base} send={send} />)
   await userEvent.keyboard('4')
   expect(send).toHaveBeenLastCalledWith({ type: 'vote', cardId: '5' })
+})
+
+test('the deck always fits the available width by overlapping more', () => {
+  expect(fanStep(14, 1200)).toBe(72)
+  const tight = fanStep(14, 700)
+  expect(80 + tight * 13).toBeLessThanOrEqual(700 - 32)
+})
+
+test('only a long enough upward drag plays the card', () => {
+  expect(isDrop(-60)).toBe(true)
+  expect(isDrop(-59)).toBe(false)
+  expect(isDrop(40)).toBe(false)
 })

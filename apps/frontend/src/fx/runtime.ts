@@ -105,7 +105,8 @@ export const fxRuntime = {
   /** Called with every state snapshot, before it is rendered. Detects the voting → revealed transition. */
   onState(prev: PublicRoomState | null, next: PublicRoomState) {
     const key = keyOf(next)
-    if (key !== get().roundKey) {
+    // A round nobody voted in keeps its number, so a revote can share the key with the round it replaces.
+    if (key !== get().roundKey || (prev?.current?.status === 'revealed' && next.current?.status === 'voting')) {
       cancelTimeline()
       set({ roundKey: key, roundStartedAt: Date.now(), hold: null, countdown: null, moment: null, discussion: null, spin: null })
     }
@@ -156,6 +157,8 @@ export const fxRuntime = {
   },
 
   setSpin(spin: Spin) { set({ spin }) },
+
+  dismissTwist() { set(s => (s.moment === 'twist' ? { moment: null } : s)) },
 
   /** Jump to the final state (tab became visible again). */
   flush() {

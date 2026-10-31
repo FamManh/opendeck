@@ -24,3 +24,19 @@ test('host can start a pending task; non-host cannot', async () => {
   rerender(<TaskPanel items={items} outcomes={outcomes} currentItemId="i2" isHost={false} onStart={onStart} />)
   expect(screen.queryAllByRole('button')).toHaveLength(0)
 })
+
+test('a task with past rounds can show them; edit and delete stay away from tasks that already have rounds', async () => {
+  const round = { itemId: 'i2', number: 1, status: 'revealed', votes: { a: '3' }, reasons: { a: 'Nhiều case' }, deadline: null, stats: { distribution: [{ card: { id: '3', label: '3', numeric: 3, special: false }, count: 1 }] } } as never
+  const onDelete = vi.fn()
+  render(<TaskPanel items={items} outcomes={outcomes} currentItemId={null} isHost onStart={vi.fn()} onEdit={vi.fn()} onDelete={onDelete} history={[round]} participants={{ a: { name: 'An' } as never }} />)
+  expect(screen.getAllByRole('button', { name: /^Xóa/ })).toHaveLength(1)
+  await userEvent.click(screen.getByRole('button', { name: /Xem các vòng/ }))
+  expect(screen.getByText(/Nhiều case/)).toBeInTheDocument()
+})
+
+test('the summary link appears once a task is done', () => {
+  const { rerender } = render(<TaskPanel items={items} outcomes={outcomes} currentItemId={null} isHost={false} onStart={vi.fn()} onSummary={vi.fn()} />)
+  expect(screen.getByRole('button', { name: 'Xem tổng kết' })).toBeInTheDocument()
+  rerender(<TaskPanel items={[item(2, 'pending')]} outcomes={[]} currentItemId={null} isHost={false} onStart={vi.fn()} onSummary={vi.fn()} />)
+  expect(screen.queryByRole('button', { name: 'Xem tổng kết' })).toBeNull()
+})

@@ -10,25 +10,25 @@ const baseStats = {
 const st = (o: Partial<RoundStats>): RoundStats => ({ ...baseStats, ...o })
 const seats = (n: number) => Array.from({ length: n }, (_, i) => `p${i}`)
 
-test('full: countdown 0/650/1300, flips from 1950 every 150ms, results after last flip + 650', () => {
+test('full: countdown 0/500/1000, flips from 1500 every 150ms, results after last flip + 650', () => {
   const s = planReveal('full', ['a', 'b', 'c'], st({}))
-  expect(s.filter(x => x.kind === 'countdown').map(x => x.at)).toEqual([0, 650, 1300])
-  expect(s.filter(x => x.kind === 'flip').map(x => x.at)).toEqual([1950, 2100, 2250])
-  expect(s.find(x => x.kind === 'results')!.at).toBe(2250 + 650)
+  expect(s.filter(x => x.kind === 'countdown').map(x => x.at)).toEqual([0, 500, 1000])
+  expect(s.filter(x => x.kind === 'flip').map(x => x.at)).toEqual([1500, 1650, 1800])
+  expect(s.find(x => x.kind === 'results')!.at).toBe(1800 + 650)
 })
 
-test('full with 50 seats: last flip <= 1950 + 1000', () => {
+test('full with 50 seats: last flip <= 1500 + 1000', () => {
   const flips = planReveal('full', seats(50), st({})).filter(x => x.kind === 'flip')
   expect(flips).toHaveLength(50)
   expect(flips.at(-1)!.at).toBeLessThanOrEqual(2950)
 })
 
-test('medium: countdown then single flipAll at 1950, results at 2600', () => {
+test('medium: countdown then single flipAll at 1500, results at 2150', () => {
   const s = planReveal('medium', seats(5), st({}))
   expect(s.filter(x => x.kind === 'countdown')).toHaveLength(3)
   expect(s.filter(x => x.kind === 'flip')).toHaveLength(0)
-  expect(s.find(x => x.kind === 'flipAll')!.at).toBe(1950)
-  expect(s.find(x => x.kind === 'results')!.at).toBe(2600)
+  expect(s.find(x => x.kind === 'flipAll')!.at).toBe(1500)
+  expect(s.find(x => x.kind === 'results')!.at).toBe(2150)
 })
 
 test('minimal: no countdown, flipAll at 0, results at 50', () => {

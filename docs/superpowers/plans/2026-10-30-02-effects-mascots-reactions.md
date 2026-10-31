@@ -37,7 +37,7 @@
 
 - Chỉ animate `transform` và `opacity`. Không animate width/height/top/left/box-shadow/filter (§6).
 - Thời lượng tối đa (§5): chọn bài 0,3 giây · đếm ngược 1,5 giây · lật bài 1 giây · đồng thuận 2 giây · plot twist 1,5 giây · chốt điểm 0,8 giây.
-- Nhịp lấy từ design: đếm 3→2→1 cách nhau **650ms**, lá đầu tiên lật ở **1950ms**. Ở mức Đầy đủ các lá lật cách nhau **150ms**, tối đa 1 giây cho cả lượt lật (nếu đông người thì bước nhịp = `min(150, 1000 / n)`). Lá chọn nhô lên **34px**, easing `cubic-bezier(.3,.7,.3,1.3)`. Lá lật xoay Y 180° trong **560ms**, easing `cubic-bezier(.3,.7,.35,1.15)`. Reaction bay trong **1600ms**. Vòng quay **1000ms** (Tối giản: 50ms).
+- Nhịp đếm theo đặc tả (tối đa 1,5 giây, chốt 2026-10-31): đếm 3→2→1 cách nhau **500ms**, lá đầu tiên lật ở **1500ms**. Design dùng 650ms/1950ms. Ở mức Đầy đủ các lá lật cách nhau **150ms**, tối đa 1 giây cho cả lượt lật (nếu đông người thì bước nhịp = `min(150, 1000 / n)`). Lá chọn nhô lên **34px**, easing `cubic-bezier(.3,.7,.3,1.3)`. Lá lật xoay Y 180° trong **560ms**, easing `cubic-bezier(.3,.7,.35,1.15)`. Reaction bay trong **1600ms**. Vòng quay **1000ms** (Tối giản: 50ms).
 - 3 mức (§5, màn 14): `full` = Đầy đủ (mọi hiệu ứng + âm thanh) · `medium` = Vừa phải (đếm ngược, các lá lật cùng lúc, không âm thanh) · `minimal` = Tối giản (không xoay, không di chuyển, chỉ mờ dần, kết quả hiện ngay).
 - Cài đặt hiệu ứng chỉ áp dụng trên máy của từng người: lưu `localStorage['pp.fx']`. Mặc định `full`. Nếu hệ điều hành bật `prefers-reduced-motion: reduce` và toggle "Theo giảm chuyển động" đang bật (mặc định bật) thì dùng `minimal`.
 - Confetti vẽ trên canvas, tối đa **38 hạt** (con số của design), kéo dài 2 giây. Khi governor đã hạ mức thì giảm còn 19 hạt.

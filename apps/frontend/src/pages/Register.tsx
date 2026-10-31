@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AuthLayout, Field } from '@/components/AuthLayout'
+import { AvatarPicker } from '@/components/game/AvatarPicker'
+import type { Species } from '@/components/game/Mascot'
 import { NAME_MAX } from '@/domain'
 import { api } from '@/lib/api'
 import { errorMessage } from '@/lib/errors'
@@ -15,6 +17,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [displayName, setDisplayName] = useState('')
+  const [avatar, setAvatar] = useState<Species>('cat')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +28,7 @@ export function RegisterPage() {
     setBusy(true)
     setError(null)
     try {
-      const { user } = await api.post<{ user: User }>('/auth/register', { email, password, displayName: displayName.trim() })
+      const { user } = await api.post<{ user: User }>('/auth/register', { email, password, displayName: displayName.trim(), avatar })
       useAuthStore.getState().setUser(user)
       navigate(safeNext(params.get('next')), { replace: true })
     } catch (err) {
@@ -41,6 +44,10 @@ export function RegisterPage() {
         <Field label={t('auth.displayName')} htmlFor="displayName">
           <Input id="displayName" autoComplete="nickname" required maxLength={NAME_MAX} value={displayName} onChange={e => setDisplayName(e.target.value)} />
         </Field>
+        <div className="flex flex-col gap-2">
+          <span id="register-avatar" className="text-[13px] font-semibold">{t('join.pickAvatar')}</span>
+          <AvatarPicker labelledBy="register-avatar" value={avatar} onChange={setAvatar} />
+        </div>
         <Field label={t('auth.email')} htmlFor="email">
           <Input id="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} />
         </Field>

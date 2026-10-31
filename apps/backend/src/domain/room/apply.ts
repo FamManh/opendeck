@@ -23,6 +23,9 @@ export function createRoom(o: CreateRoomOptions): RoomState {
     current: null,
     history: [],
     outcomes: [],
+    questions: [],
+    notes: [],
+    qnaSeq: 0,
   }
 }
 
@@ -41,7 +44,14 @@ export function applyCommand(prev: RoomState, c: Command, now: number): CommandR
     case 'approve': P.approve(s, c.pid, c.target, now, ev); break
     case 'reject': P.reject(s, c.pid, c.target, ev); break
     case 'setAccess': P.setAccess(s, c.pid, c, now, ev); break
+    case 'setRevealRule': R.setRevealRule(s, c.pid, c); break
     case 'addItems': R.addItems(s, c.pid, c.items, ev); break
+    case 'editItem': R.editItem(s, c.pid, c, ev); break
+    case 'deleteItem': R.deleteItem(s, c.pid, c.itemId, ev); break
+    case 'startSession': R.startSession(s, c.pid, ev); break
+    case 'ask': R.ask(s, c.pid, c.text, now); break
+    case 'answerQuestion': R.answerQuestion(s, c.pid, c.questionId, c.answered); break
+    case 'addNote': R.addNote(s, c.pid, c.text, now); break
     case 'startRound': R.startRound(s, c.pid, c.itemId, c.timerSec, now, ev); break
     case 'vote': R.vote(s, c.pid, c.cardId, ev); break
     case 'reveal': R.revealCmd(s, c.pid, ev); break

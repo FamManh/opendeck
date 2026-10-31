@@ -62,6 +62,10 @@ export class RoomStoreService implements OnModuleInit, OnModuleDestroy {
     const at = this.now()
     for (const p of Object.values(state.participants)) if (p.online) { p.online = false; p.offlineSince = at }
     state.pending = {}
+    // Phòng lưu trước khi có hỏi đáp: bổ sung các trường mới để lệnh và client không gặp undefined.
+    state.questions ??= []
+    state.notes ??= []
+    state.qnaSeq ??= 0
     this.rooms.set(slug, state)
     return state
   }

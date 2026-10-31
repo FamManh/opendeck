@@ -47,3 +47,11 @@ test('does not mutate or alias the source state', () => {
   pub.participants.A!.name = 'changed'
   expect(voting).toEqual(snapshot)
 })
+
+test('questions and notes never carry votes or reasons before reveal', () => {
+  const s = run(voting, [{ type: 'ask', pid: 'A', text: 'Có cần sandbox?' }, { type: 'addNote', pid: 'B', text: 'Ghi chú' }]).state
+  const view = toPublicState(s, 'B')
+  expect(view.questions.map(q => q.text)).toEqual(['Có cần sandbox?'])
+  expect(view.current!.votes).toBeNull()
+  expect(JSON.stringify(view.questions)).not.toMatch(/cardId|votes/)
+})

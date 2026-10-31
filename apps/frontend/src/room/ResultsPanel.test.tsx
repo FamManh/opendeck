@@ -41,7 +41,7 @@ test('host picks a card and locks; non-host sees no controls', async () => {
   expect(onFinalize).toHaveBeenCalledWith('8')
   await userEvent.click(screen.getByRole('button', { name: 'Bỏ phiếu lại' }))
   expect(onRevote).toHaveBeenCalled()
-  await userEvent.type(screen.getByRole('textbox'), '40')
+  await userEvent.type(screen.getAllByRole('textbox')[0]!, '40')
   await userEvent.click(screen.getByRole('button', { name: 'Chốt điểm' }))
   expect(onFinalize).toHaveBeenLastCalledWith('40')
   rerender(<ResultsPanel stats={stats} scale={fib} isHost={false} onFinalize={onFinalize} onRevote={onRevote} />)

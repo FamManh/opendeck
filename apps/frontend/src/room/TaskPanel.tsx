@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, Play, Plus } from 'lucide-react'
+import { Check, ChevronDown, Pencil, Play, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { Item, Outcome } from '@/domain'
+import { PokerCard } from '@/components/game/PokerCard'
+import type { Item, Outcome, Participant, Round } from '@/domain'
 
 export interface TaskPanelProps {
   items: Item[]
@@ -10,10 +12,40 @@ export interface TaskPanelProps {
   isHost: boolean
   onStart: (itemId: string) => void
   onAdd?: (() => void) | undefined
+  onEdit?: ((item: Item) => void) | undefined
+  onDelete?: ((itemId: string) => void) | undefined
+  onSummary?: (() => void) | undefined
+  /** Past rounds, for the per-task history. */
+  history?: Round[] | undefined
+  participants?: Record<string, Participant> | undefined
 }
 
-export function TaskPanel({ items, outcomes, currentItemId, isHost, onStart, onAdd }: TaskPanelProps) {
+function RoundHistory({ rounds, participants }: { rounds: Round[]; participants: Record<string, Participant> }) {
   const { t } = useTranslation()
+  return (
+    <ol data-slot="round-history" className="flex flex-col gap-2 pt-1">
+      {rounds.map(r => (
+        <li key={r.number} className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-muted-foreground">{t('room.round', { n: r.number })}</span>
+            {r.stats?.distribution.map(d => (
+              <span key={d.card.id} className="flex items-center gap-1 text-xs font-semibold">
+                <span className="h-[28px] w-5"><PokerCard value={d.card.id} compact instant /></span>×{d.count}
+              </span>
+            ))}
+          </div>
+          {Object.entries(r.reasons).map(([pid, why]) => (
+            <p key={pid} className="text-xs leading-snug"><b>{participants[pid]?.name ?? '?'}</b> · {why}</p>
+          ))}
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function TaskPanel({ items, outcomes, currentItemId, isHost, onStart, onAdd, onEdit, onDelete, onSummary, history = [], participants = {} }: TaskPanelProps) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState<string | null>(null)
   const done = items.filter(i => i.status === 'done').length
   const pct = items.length ? (done / items.length) * 100 : 0
   return (
@@ -35,25 +67,42 @@ export function TaskPanel({ items, outcomes, currentItemId, isHost, onStart, onA
         {items.map(item => {
           const outcome = outcomes.find(o => o.itemId === item.id)
           const current = item.id === currentItemId
+          const rounds = history.filter(r => r.itemId === item.id)
+          const expanded = open === item.id
           return (
-            <li key={item.id} data-status={item.status} aria-current={current ? 'true' : undefined} className={`flex min-h-11 items-center gap-2.5 rounded-2xl px-2.5 py-2 ${current ? 'bg-background' : ''}`}>
-              {item.status === 'done'
-                ? <span className="flex size-[22px] flex-none items-center justify-center rounded-full bg-good text-white"><Check className="size-3.5" strokeWidth={3.4} /></span>
-                : current
-                  ? <span className="size-[22px] flex-none rounded-full border-[6px] border-primary" />
-                  : <span className="size-[22px] flex-none rounded-full border border-border" />}
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-muted-foreground">{item.externalRef ?? item.id}</div>
-                <div className="truncate text-sm">{item.title}</div>
+            <li key={item.id} data-status={item.status} aria-current={current ? 'true' : undefined} className={`flex flex-col rounded-2xl px-2.5 py-2 ${current ? 'bg-background' : ''}`}>
+              <div className="flex min-h-7 items-center gap-2">
+                {item.status === 'done'
+                  ? <span className="flex size-[22px] flex-none items-center justify-center rounded-full bg-good text-white"><Check className="size-3.5" strokeWidth={3.4} /></span>
+                  : current
+                    ? <span className="size-[22px] flex-none rounded-full border-[6px] border-primary" />
+                    : <span className="size-[22px] flex-none rounded-full border border-border" />}
+                <div className="min-w-0 flex-1">
+                  {item.externalRef && <div className="text-xs font-semibold text-muted-foreground">{item.externalRef}</div>}
+                  <div className="truncate text-sm" title={item.title}>{item.title}</div>
+                </div>
+                {outcome && <span data-slot="outcome" className="flex h-7 min-w-[30px] flex-none items-center justify-center rounded-[9px] bg-primary px-2 text-[13px] font-semibold text-primary-foreground">{outcome.value}</span>}
+                {rounds.length > 0 && (
+                  <Button size="icon" variant="ghost" className="size-8" aria-expanded={expanded} aria-label={t('room.showHistory', { title: item.title })} onClick={() => setOpen(expanded ? null : item.id)}>
+                    <ChevronDown className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+                  </Button>
+                )}
+                {isHost && item.status === 'pending' && onEdit && (
+                  <Button size="icon" variant="ghost" className="size-8" aria-label={t('addItems.editItem', { title: item.title })} onClick={() => onEdit(item)}><Pencil /></Button>
+                )}
+                {isHost && item.status === 'pending' && !current && rounds.length === 0 && onDelete && (
+                  <Button size="icon" variant="ghost" className="size-8" aria-label={t('addItems.deleteItem', { title: item.title })} onClick={() => onDelete(item.id)}><Trash2 /></Button>
+                )}
+                {isHost && item.status === 'pending' && !current && (
+                  <Button size="icon" variant="ghost" className="size-8" aria-label={t('room.startRound')} onClick={() => onStart(item.id)}><Play /></Button>
+                )}
               </div>
-              {outcome && <span data-slot="outcome" className="flex h-7 min-w-[30px] flex-none items-center justify-center rounded-[9px] bg-primary px-2 text-[13px] font-semibold text-primary-foreground">{outcome.value}</span>}
-              {isHost && item.status === 'pending' && !current && (
-                <Button size="icon" variant="ghost" aria-label={t('room.startRound')} onClick={() => onStart(item.id)}><Play /></Button>
-              )}
+              {expanded && <div className="pl-[30px]"><RoundHistory rounds={rounds} participants={participants} /></div>}
             </li>
           )
         })}
       </ul>
+      {onSummary && done > 0 && done < items.length && <Button variant="ghost" className="mx-3 mb-2 flex-none" onClick={onSummary}>{t('room.viewSummary')}</Button>}
     </div>
   )
 }

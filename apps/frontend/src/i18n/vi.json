@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "OpenDeck — Planning Poker",
+    "title": "Planning Poker",
     "language": "Ngôn ngữ",
     "themeLight": "Chuyển sang giao diện sáng",
     "themeDark": "Chuyển sang giao diện tối"
@@ -89,11 +89,19 @@
     "BAD_TARGET": "Không thể ném vào người này.",
     "TARGET_NOT_IDLE": "Người này đã chọn bài rồi.",
     "NOT_DISCUSSION": "Vòng này chưa cần thảo luận.",
-    "ALREADY_SPUN": "Vòng quay đã được dùng cho vòng này."
+    "ALREADY_SPUN": "Vòng quay đã được dùng cho vòng này.",
+    "NO_VOTES": "Chưa có phiếu nào để lật.",
+    "ITEM_NOT_EDITABLE": "Task đã chốt không sửa được.",
+    "ITEM_HAS_ROUNDS": "Task đã có vòng bỏ phiếu nên không xóa được.",
+    "QNA_EMPTY": "Nội dung đang trống.",
+    "QNA_TOO_LONG": "Nội dung quá dài.",
+    "QNA_LIMIT": "Task này đã đủ số mục tối đa.",
+    "UNKNOWN_QUESTION": "Không tìm thấy câu hỏi.",
+    "NOT_OWNER": "Chỉ chủ phòng mới làm được việc này."
   },
   "auth": {
     "loginTitle": "Chào mừng trở lại.",
-    "loginSub": "Đăng nhập để tạo phòng và kéo task từ Jira.",
+    "loginSub": "Đăng nhập để tạo phòng và làm host.",
     "registerTitle": "Tạo tài khoản.",
     "registerSub": "Tài khoản dùng để tạo phòng và làm host.",
     "tabLogin": "Đăng nhập",
@@ -165,7 +173,11 @@
     "on": "Bật",
     "off": "Tắt",
     "preview": "Xem trước",
-    "submit": "Tạo phòng"
+    "submit": "Tạo phòng",
+    "timer": "Đếm ngược mỗi vòng",
+    "minutes": "{{n}} phút",
+    "autoReveal": "Tự lật khi đủ phiếu",
+    "autoRevealHint": "Lật ngay khi mọi người đang online đã chọn bài."
   },
   "join": {
     "title": "Vào phòng {{name}}.",
@@ -197,7 +209,8 @@
       "thinking": "Đang nghĩ",
       "offline": "Mất kết nối",
       "observer": "Quan sát",
-      "novote": "Chưa chọn"
+      "novote": "Chưa chọn",
+      "idle": "Sẵn sàng"
     },
     "fanLabel": "Chọn lá bài của bạn",
     "observing": "Bạn đang quan sát vòng này.",
@@ -235,7 +248,30 @@
     "joinRequest": "{{name}} muốn vào phòng",
     "approve": "Cho vào",
     "reject": "Từ chối",
-    "openPanel": "Mở danh sách task"
+    "openPanel": "Mở danh sách task",
+    "peopleCount": "{{players}} người chơi · {{observers}} quan sát",
+    "votedCount": "{{voted}}/{{total}} đã chọn",
+    "reasonPlaceholderAfter": "Ghi một dòng lý do cho vòng này",
+    "rejected": "Host chưa cho bạn vào phòng",
+    "rejectedNote": "Yêu cầu vào phòng của bạn đã bị từ chối.",
+    "hostless": "Phòng đang chưa có host. Cần một người có tài khoản vào phòng để nhận quyền.",
+    "hostlessClaim": "Phòng đang chưa có host. Tải lại trang để nhận quyền host.",
+    "switchTitle": "Chuyển sang task khác?",
+    "switchBody": "Vòng hiện tại chưa lật nên các phiếu đã chọn sẽ bị bỏ.",
+    "switchConfirm": "Chuyển task",
+    "yourCards": "Bài của bạn",
+    "send": "Gửi",
+    "noQuestions": "Chưa có câu hỏi nào cho task này.",
+    "noNotes": "Chưa có ghi chú nào cho task này.",
+    "formerMember": "Thành viên cũ",
+    "answered": "Đã trả lời",
+    "markAnswered": "Đánh dấu đã trả lời",
+    "markUnanswered": "Bỏ đánh dấu",
+    "askLabel": "Đặt câu hỏi",
+    "askPlaceholder": "Đặt câu hỏi cho task này…",
+    "noteLabel": "Thêm ghi chú",
+    "notePlaceholder": "Thêm ghi chú cho task này…",
+    "showHistory": "Xem các vòng của {{title}}"
   },
   "results": {
     "average": "Trung bình",
@@ -275,7 +311,10 @@
     "count": "{{count}} task sẽ được thêm",
     "submit": "Thêm task",
     "errTooMany": "File có quá 500 dòng.",
-    "errCsv": "Không đọc được file CSV (thiếu cột title)."
+    "errCsv": "Không đọc được file CSV (thiếu cột title).",
+    "editTitle": "Sửa task",
+    "editItem": "Sửa {{title}}",
+    "deleteItem": "Xóa {{title}}"
   },
   "summary": {
     "badge": "Kết thúc buổi",
@@ -295,7 +334,9 @@
     "colTask": "Task",
     "colFinal": "Điểm chốt",
     "colRounds": "Vòng",
-    "notFinal": "—"
+    "notFinal": "—",
+    "colNotes": "Ghi chú",
+    "colSpecial": "Lá đặc biệt"
   },
   "fx": {
     "open": "Cài đặt hiệu ứng",
@@ -315,13 +356,54 @@
     "sound": "Âm thanh",
     "followReduced": "Theo giảm chuyển động của hệ thống",
     "downgraded": "Máy đang hơi chậm, đã chuyển hiệu ứng sang {{level}}. Đổi lại trong ✦.",
-    "speakFirst": "Mời {{low}} và {{high}} nói trước",
     "spin": "Quay chọn người nói trước",
     "spinResult": "{{name}} nói trước",
     "throwPlane": "Ném máy bay giấy",
     "reactions": "Reaction",
     "react": "Gửi {{emoji}}",
     "countdown": "Đếm ngược {{n}}",
-    "stamp": "Đã chốt"
+    "stamp": "Đã chốt",
+    "twistBadge": "Plot twist",
+    "twistTitle": "{{low}} và {{high}} nhìn task này rất khác nhau.",
+    "twistBody": "Mời hai bạn chia sẻ góc nhìn trước. Khoảng cách lớn thường là chỗ có điều cả nhóm chưa thấy.",
+    "viewResults": "Xem bảng kết quả"
+  },
+  "profile": {
+    "title": "Đổi tên và nhân vật",
+    "sub": "Mọi người trong phòng sẽ thấy thay đổi ngay.",
+    "save": "Lưu"
+  },
+  "people": {
+    "open": "Danh sách thành viên",
+    "title": "Thành viên",
+    "sub": "Những người đang có trong phòng.",
+    "hostHint": "Đổi vai trò, chuyển quyền host hoặc mời ra khỏi phòng.",
+    "voter": "Người bỏ phiếu",
+    "successor": "Host kế nhiệm",
+    "needAccount": "Host phải có tài khoản.",
+    "makeVoter": "Cho {{name}} bỏ phiếu",
+    "makeObserver": "Chuyển {{name}} sang quan sát",
+    "makeHost": "Chuyển quyền host cho {{name}}",
+    "makeSuccessor": "Chọn {{name}} làm host kế nhiệm",
+    "kick": "Mời {{name}} ra khỏi phòng",
+    "kickTitle": "Mời {{name}} ra khỏi phòng?",
+    "kickBody": "Người này sẽ không vào lại được phòng này.",
+    "kickConfirm": "Mời ra"
+  },
+  "settings": {
+    "open": "Cài đặt phòng",
+    "title": "Cài đặt phòng",
+    "hostTitle": "Dành cho host",
+    "nextRound": "Áp dụng từ vòng tiếp theo.",
+    "lock": "Khóa phòng (không nhận người mới)",
+    "setPassword": "Đặt mật khẩu phòng",
+    "changePassword": "Đổi mật khẩu phòng",
+    "removePassword": "Gỡ mật khẩu",
+    "passwordSaved": "Đã lưu mật khẩu. Người đang trong phòng vẫn ở lại.",
+    "passwordRemoved": "Đã gỡ mật khẩu.",
+    "newSession": "Mở buổi mới",
+    "newSessionTitle": "Mở buổi mới?",
+    "newSessionBody": "Danh sách task, kết quả và ghế của người đã rời sẽ được xóa khỏi phòng. Hãy xuất CSV trước nếu cần giữ lại.",
+    "newSessionConfirm": "Mở buổi mới"
   }
 }

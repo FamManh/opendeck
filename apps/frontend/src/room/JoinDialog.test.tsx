@@ -68,7 +68,7 @@ test('new guest sees name + 8 mascots; submit disabled for empty or too-long nam
   await user.click(screen.getByRole('radio', { name: i18n.t('species.fox') }))
   await user.click(submit)
   await waitFor(() => expect(onJoined).toHaveBeenCalledOnce())
-  expect(calls[0]).toMatchObject({ path: '/api/guests', body: { name: 'Thảo', avatar: 'fox' } })
+  expect(calls.find(c => c.method === 'POST' && c.path === '/api/guests')).toMatchObject({ body: { name: 'Thảo', avatar: 'fox' } })
   expect(JSON.parse(localStorage.getItem('opendeck.guest')!)).toEqual({ name: 'Thảo', avatar: 'fox' })
 })
 
@@ -114,4 +114,13 @@ test('below 768px the join form opens as a bottom sheet', async () => {
   render(<JoinDialog slug="abc" room={room} onJoined={vi.fn()} />)
   const dialog = await screen.findByRole('dialog')
   expect(dialog).toHaveAttribute('data-side', 'bottom')
+})
+
+test('cleared localStorage but a live guest cookie: keeps the identity without asking again', async () => {
+  localStorage.clear()
+  routes['GET /api/guests/me'] = { status: 200, body: { guest: { id: 'g1', name: 'Thảo', avatar: 'fox' } } }
+  const onJoined = vi.fn()
+  render(<JoinDialog slug="abc" room={room} onJoined={onJoined} />)
+  await waitFor(() => expect(onJoined).toHaveBeenCalledOnce())
+  expect(screen.queryByRole('dialog')).toBeNull()
 })

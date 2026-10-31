@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Mascot, SPECIES, type Species } from '@/components/game/Mascot'
+import { AvatarPicker } from '@/components/game/AvatarPicker'
+import { isSpecies, type Species } from '@/components/game/Mascot'
 import { NAME_MAX } from '@/domain'
 import { api, ApiError } from '@/lib/api'
 import { loadGuest, saveGuest } from '@/lib/guest'
+import { useIsMobile } from '@/lib/useIsMobile'
 import { useMe } from '@/lib/useMe'
 
 export interface RoomPreview { name: string; hasPassword: boolean }
@@ -25,25 +27,20 @@ export interface JoinDialogProps {
 
 type Step = 'auto' | 'form'
 
-function useIsMobile(): boolean {
-  const query = '(max-width: 767px)'
-  const [mobile, setMobile] = useState(() => typeof window.matchMedia === 'function' && window.matchMedia(query).matches)
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia(query)
-    const on = () => setMobile(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return mobile
+async function recoverGuest(): Promise<{ name: string; avatar: Species } | null> {
+  try {
+    const { guest } = await api.get<{ guest: { name: string; avatar: string } }>('/guests/me')
+    return { name: guest.name, avatar: isSpecies(guest.avatar) ? guest.avatar : 'cat' }
+  } catch {
+    return null
+  }
 }
 
 export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
   const { t } = useTranslation()
   const { user, loading } = useMe()
   const isMobile = useIsMobile()
-  const saved = useRef(loadGuest()).current
-  const knownIdentity = user !== null || saved !== null
+  const [saved, setSaved] = useState(loadGuest)
 
   const [step, setStep] = useState<Step>('auto')
   const [name, setName] = useState(saved?.name ?? '')
@@ -69,12 +66,15 @@ export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
   useEffect(() => {
     if (loading || triedAuto.current) return
     triedAuto.current = true
-    if (!knownIdentity) { setStep('form'); return }
     void (async () => {
       try {
+        // localStorage may be gone while the guest cookie still holds the profile: keep the same seat instead of asking again.
+        const profile = user ? null : saved ?? await recoverGuest()
+        if (!user && !profile) { setStep('form'); return }
+        if (profile && !saved) setSaved(profile)
         const identity: JoinedIdentity = user
           ? { kind: 'user', name: user.displayName, avatar: user.avatar }
-          : await guestIdentity(saved!.name, saved!.avatar)
+          : await guestIdentity(profile!.name, profile!.avatar)
         await join(undefined)
         onJoined(identity)
       } catch (e) {
@@ -83,7 +83,7 @@ export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
         else { setError(t('join.error')); setStep('form') }
       }
     })()
-  }, [loading, knownIdentity, user, saved, guestIdentity, join, onJoined, t])
+  }, [loading, user, saved, guestIdentity, join, onJoined, t])
 
   const trimmed = name.trim()
   const nameInvalid = trimmed.length === 0 || trimmed.length > NAME_MAX
@@ -129,21 +129,7 @@ export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
           </div>
           <div className="flex flex-col gap-2">
             <Label id="join-avatar-label">{t('join.pickAvatar')}</Label>
-            <div role="radiogroup" aria-labelledby="join-avatar-label" className="grid grid-cols-4 gap-2">
-              {SPECIES.map(sp => (
-                <button
-                  key={sp}
-                  type="button"
-                  role="radio"
-                  aria-checked={avatar === sp}
-                  aria-label={t(`species.${sp}`)}
-                  onClick={() => setAvatar(sp)}
-                  className={`flex h-16 items-center justify-center rounded-2xl bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-[72px] ${avatar === sp ? 'ring-2 ring-primary' : ''}`}
-                >
-                  <Mascot species={sp} state="thinking" size={48} />
-                </button>
-              ))}
-            </div>
+            <AvatarPicker labelledBy="join-avatar-label" value={avatar} onChange={setAvatar} />
           </div>
         </>
       )}
@@ -157,9 +143,11 @@ export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
 
       {error && <p role="alert" className="text-sm font-semibold text-warn">{error}</p>}
 
-      <Button type="submit" size="lg" disabled={!canSubmit}>
-        {error ? t('join.retry') : t('join.submit')}
-      </Button>
+      <div className="sticky bottom-0 -mx-4 bg-background px-4 pt-2 pb-1 md:static md:mx-0 md:p-0">
+        <Button type="submit" size="lg" className="w-full" disabled={!canSubmit}>
+          {error ? t('join.retry') : t('join.submit')}
+        </Button>
+      </div>
     </form>
   )
 
@@ -168,9 +156,9 @@ export function JoinDialog({ slug, room, onJoined }: JoinDialogProps) {
   if (isMobile) {
     return (
       <Sheet open onOpenChange={() => {}}>
-        <SheetContent side="bottom" showCloseButton={false} className="px-4 pb-7" onInteractOutside={e => e.preventDefault()}>
+        <SheetContent side="bottom" showCloseButton={false} className="max-h-[90svh] overflow-y-auto px-4 pb-4" onInteractOutside={e => e.preventDefault()}>
           <SheetHeader className="p-0">
-            <SheetTitle className="text-2xl">{title}</SheetTitle>
+            <SheetTitle className="text-2xl break-words">{title}</SheetTitle>
             <SheetDescription>{description}</SheetDescription>
           </SheetHeader>
           {form}
