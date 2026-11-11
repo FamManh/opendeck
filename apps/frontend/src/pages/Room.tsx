@@ -143,7 +143,7 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
       <TopBar name={name} slug={slug} hasPassword={hasPassword} state={state} me={me} isHost={isHost} send={send} />
       {isHost && <PendingBar pending={state.pending} send={send} />}
       {state.hostId === null && (
-        <p data-slot="hostless" role="status" className="mx-4 mt-2 flex-none rounded-2xl bg-warn/20 px-4 py-2 text-sm font-semibold">
+        <p data-slot="hostless" role="status" className="mx-4 mt-2 flex-none rounded-xl bg-warn/20 px-4 py-2 text-sm font-semibold">
           {t(user ? 'room.hostlessClaim' : 'room.hostless')}
         </p>
       )}
@@ -178,7 +178,7 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
             {observing}
             {results}
           </section>
-          <aside className="mr-4 mb-4 flex min-h-0 flex-col overflow-hidden rounded-3xl bg-muted">{tabs(true)}</aside>
+          <aside className="mt-3 mr-4 mb-4 flex min-h-0 flex-col overflow-hidden rounded-3xl bg-muted">{tabs(true)}</aside>
         </div>
       )}
     </div>

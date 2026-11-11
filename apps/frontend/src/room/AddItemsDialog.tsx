@@ -14,7 +14,7 @@ export interface AddItemsDialogProps {
   onSubmit: (items: NewItem[]) => Promise<void>
 }
 
-const areaClass = 'min-h-32 w-full resize-none rounded-2xl bg-input p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const areaClass = 'min-h-32 w-full resize-none rounded-xl bg-input p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function AddItemsDialog({ open, onOpenChange, onSubmit }: AddItemsDialogProps) {
   const { t } = useTranslation()
@@ -60,10 +60,10 @@ export function AddItemsDialog({ open, onOpenChange, onSubmit }: AddItemsDialogP
           <DialogDescription className="sr-only">{t('addItems.title')}</DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={setTab} className="gap-4">
-          <TabsList className="h-auto w-full justify-start gap-1 rounded-3xl bg-muted p-1">
-            <TabsTrigger value="manual" className="h-9 rounded-full px-3 text-[13px] font-semibold">{t('addItems.tabManual')}</TabsTrigger>
-            <TabsTrigger value="paste" className="h-9 rounded-full px-3 text-[13px] font-semibold">{t('addItems.tabPaste')}</TabsTrigger>
-            <TabsTrigger value="csv" className="h-9 rounded-full px-3 text-[13px] font-semibold">{t('addItems.tabCsv')}</TabsTrigger>
+          <TabsList className="h-auto w-full gap-1 bg-muted p-1">
+            <TabsTrigger value="manual" className="h-8 px-3 text-[13px] font-semibold">{t('addItems.tabManual')}</TabsTrigger>
+            <TabsTrigger value="paste" className="h-8 px-3 text-[13px] font-semibold">{t('addItems.tabPaste')}</TabsTrigger>
+            <TabsTrigger value="csv" className="h-8 px-3 text-[13px] font-semibold">{t('addItems.tabCsv')}</TabsTrigger>
           </TabsList>
           <TabsContent value="manual" className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
@@ -86,7 +86,7 @@ export function AddItemsDialog({ open, onOpenChange, onSubmit }: AddItemsDialogP
           </TabsContent>
           <TabsContent value="csv" className="flex flex-col gap-2">
             <Label htmlFor="add-csv">{t('addItems.csvPick')}</Label>
-            <input id="add-csv" type="file" accept=".csv,text/csv" onChange={e => void pickFile(e.target.files?.[0])} className="text-sm file:mr-3 file:h-9 file:rounded-full file:border-0 file:bg-secondary file:px-4 file:font-semibold" />
+            <input id="add-csv" type="file" accept=".csv,text/csv" onChange={e => void pickFile(e.target.files?.[0])} className="text-sm file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:font-semibold" />
             <p className="text-[13px] text-muted-foreground">{t('addItems.csvHint')}</p>
             {csv.error && <p role="alert" className="text-sm text-destructive">{t(csv.error)}</p>}
           </TabsContent>

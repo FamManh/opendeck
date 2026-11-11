@@ -2,17 +2,55 @@
 @keyframes ppCountPop { 0% { transform: scale(0.6); opacity: 0 } 40% { transform: scale(1.15); opacity: 1 } 100% { transform: scale(1); opacity: 0 } }
 @keyframes ppStamp { 0% { transform: scale(1.6) rotate(-12deg); opacity: 0 } 60% { transform: scale(0.95) rotate(-12deg); opacity: 1 } 100% { transform: scale(1) rotate(-12deg); opacity: 1 } }
 @keyframes ppReact { 0% { transform: translateY(0) scale(0.6); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-160px) scale(1.2); opacity: 0 } }
+/* Reaction: the column rises straight up the layer's height while the emoji pops in. */
+@keyframes ppRise { 0% { transform: translateY(0); opacity: 0 } 8% { opacity: 1 } 70% { opacity: 1 } 100% { transform: translateY(-82%); opacity: 0 } }
+@keyframes ppPop { 0% { transform: scale(0.3) } 60% { transform: scale(1.25) } 100% { transform: scale(1) } }
 @keyframes ppPlane { 0% { transform: translate(0, 0) rotate(0deg); opacity: 1 } 100% { transform: translate(var(--dx, 80px), var(--dy, -40px)) rotate(25deg); opacity: 0 } }
 @keyframes ppSpot { 0% { transform: scale(0.7); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
 @keyframes ppCone { from { opacity: 0 } to { opacity: 0.55 } }
 @keyframes ppFade { from { opacity: 0 } to { opacity: 1 } }
+/* Thrown item: a parabola y = dy·t − 4·arc·t(1−t), sampled every 10% (linear between samples). */
+@keyframes ppThrow {
+  0% { transform: translate(calc(var(--dx) * 0), calc(var(--dy) * 0 - var(--arc) * 0)) }
+  10% { transform: translate(calc(var(--dx) * 0.1), calc(var(--dy) * 0.1 - var(--arc) * 0.36)) }
+  20% { transform: translate(calc(var(--dx) * 0.2), calc(var(--dy) * 0.2 - var(--arc) * 0.64)) }
+  30% { transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3 - var(--arc) * 0.84)) }
+  40% { transform: translate(calc(var(--dx) * 0.4), calc(var(--dy) * 0.4 - var(--arc) * 0.96)) }
+  50% { transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * 0.5 - var(--arc) * 1)) }
+  60% { transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * 0.6 - var(--arc) * 0.96)) }
+  70% { transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.7 - var(--arc) * 0.84)) }
+  80% { transform: translate(calc(var(--dx) * 0.8), calc(var(--dy) * 0.8 - var(--arc) * 0.64)) }
+  90% { transform: translate(calc(var(--dx) * 0.9), calc(var(--dy) * 0.9 - var(--arc) * 0.36)) }
+  100% { transform: translate(calc(var(--dx) * 1), calc(var(--dy) * 1 - var(--arc) * 0)) }
+}
+@keyframes ppThrowSpin { from { transform: rotate(0deg) scale(.8) } to { transform: rotate(var(--spin, 540deg)) scale(1.1) } }
+/* Hit on a mascot: squash on impact, then a dizzy wobble until it settles. */
+@keyframes ppSquash {
+  0% { transform: scale(1) } 8% { transform: scale(1.35, .6) } 18% { transform: scale(.8, 1.2) } 28% { transform: scale(1.12, .9) }
+  40% { transform: rotate(-10deg) } 55% { transform: rotate(8deg) } 70% { transform: rotate(-5deg) } 85% { transform: rotate(3deg) } 100% { transform: none }
+}
+@keyframes ppLove { 0%, 100% { transform: scale(1) } 12%, 42%, 72% { transform: scale(1.18) } 27%, 57%, 87% { transform: scale(.96) } }
+@keyframes ppSplat { 0% { transform: scale(.2); opacity: 1 } 12% { transform: scale(1.12) } 20% { transform: scale(1) } 75% { opacity: .95 } 100% { transform: scale(1); opacity: 0 } }
+@keyframes ppQuiver { 0% { transform: rotate(0) } 6% { transform: rotate(8deg) } 12% { transform: rotate(-7deg) } 18% { transform: rotate(5deg) } 24% { transform: rotate(-4deg) } 30% { transform: rotate(2deg) } 36%, 85% { transform: rotate(0); opacity: 1 } 100% { transform: rotate(0); opacity: 0 } }
+@keyframes ppBoom { 0% { transform: scale(.2); opacity: 0 } 8% { transform: scale(1.4); opacity: 1 } 35% { transform: scale(1.15); opacity: 1 } 60%, 100% { transform: scale(1.3); opacity: 0 } }
+@keyframes ppFloatUp { 0% { transform: translateY(4px) scale(.5); opacity: 0 } 15% { transform: translateY(0) scale(1); opacity: 1 } 75% { opacity: 1 } 100% { transform: translateY(-14px) scale(1); opacity: 0 } }
 
 @theme inline {
   --animate-pp-count: ppCountPop 500ms ease-out both;
   --animate-pp-stamp: ppStamp 800ms cubic-bezier(.3, .7, .3, 1.3) both;
   --animate-pp-react: ppReact 1600ms ease-out both;
+  --animate-pp-rise: ppRise var(--dur, 3000ms) cubic-bezier(.25, .6, .35, 1) both;
+  --animate-pp-pop: ppPop 360ms cubic-bezier(.3, .7, .3, 1.4) both;
   --animate-pp-plane: ppPlane 1200ms ease-in-out both;
   --animate-pp-spot: ppSpot 1500ms ease-out both;
   --animate-pp-cone: ppCone 700ms ease-out both;
   --animate-pp-fade: ppFade 200ms linear both;
+  --animate-pp-throw: ppThrow 650ms linear both;
+  --animate-pp-throw-spin: ppThrowSpin 650ms linear both;
+  --animate-pp-squash: ppSquash 2000ms ease-out both;
+  --animate-pp-love: ppLove 2000ms ease-in-out both;
+  --animate-pp-splat: ppSplat 2000ms ease-out both;
+  --animate-pp-float-up: ppFloatUp 2000ms ease-out both;
+  --animate-pp-quiver: ppQuiver 2000ms ease-out both;
+  --animate-pp-boom: ppBoom 2000ms ease-out both;
 }

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import type { DomainEvent, PublicRoomState } from '@/domain'
-import { fxRuntime, useFxStore } from './runtime'
+import { fxRuntime, REACTION_FLOAT_MS, useFxStore } from './runtime'
+import { FLIGHT_MS, HIT_MS, MAX_HITS_PER_SEAT } from './throws'
 
 const stats = { consensusLevel: 'absolute', needsDiscussion: false, modes: [{ id: '5', label: '5', numeric: 5, special: false }], distribution: [{ card: { id: '5', label: '5', numeric: 5, special: false }, count: 2 }], min: null, max: null }
 const mk = (status: 'voting' | 'revealed', number = 1): PublicRoomState => ({
@@ -54,6 +55,50 @@ test('a new round cancels a running timeline', () => {
 test('reactions are capped at 30 floating', () => {
   fxRuntime.addReactions([{ emoji: '👏', count: 50 }])
   expect(useFxStore.getState().floating).toHaveLength(30)
-  vi.advanceTimersByTime(2000)
+  vi.advanceTimersByTime(REACTION_FLOAT_MS)
   expect(useFxStore.getState().floating).toHaveLength(0)
+})
+
+test('a thrown item flies, then lands as a hit that clears itself', () => {
+  fxRuntime.addThrow({ from: 'a', target: 'b', kind: 'tomato' })
+  expect(useFxStore.getState().flights).toHaveLength(1)
+  expect(useFxStore.getState().hits.b).toBeUndefined()
+  vi.advanceTimersByTime(FLIGHT_MS)
+  expect(useFxStore.getState().flights).toHaveLength(0)
+  expect(useFxStore.getState().hits.b).toMatchObject([{ kind: 'tomato' }])
+  vi.advanceTimersByTime(HIT_MS)
+  expect(useFxStore.getState().hits.b).toBeUndefined()
+})
+
+test('hits on the same seat stack, each leaving after its own HIT_MS', () => {
+  fxRuntime.addThrow({ from: 'a', target: 'b', kind: 'tomato' })
+  vi.advanceTimersByTime(500)
+  fxRuntime.addThrow({ from: 'c', target: 'b', kind: 'bomb' })
+  vi.advanceTimersByTime(FLIGHT_MS)
+  expect(useFxStore.getState().hits.b?.map(h => h.kind)).toEqual(['tomato', 'bomb'])
+  vi.advanceTimersByTime(HIT_MS - 500)
+  expect(useFxStore.getState().hits.b?.map(h => h.kind)).toEqual(['bomb'])
+  vi.advanceTimersByTime(500)
+  expect(useFxStore.getState().hits.b).toBeUndefined()
+})
+
+test('a pelted seat keeps only the newest MAX_HITS_PER_SEAT hits', () => {
+  for (let i = 0; i < MAX_HITS_PER_SEAT + 3; i++) fxRuntime.addThrow({ from: 'a', target: 'b', kind: 'poop' })
+  vi.advanceTimersByTime(FLIGHT_MS)
+  expect(useFxStore.getState().hits.b).toHaveLength(MAX_HITS_PER_SEAT)
+})
+
+test('nudge kinds still go through the paper plane path', () => {
+  fxRuntime.addThrow({ from: 'a', target: 'b', kind: 'plane' })
+  expect(useFxStore.getState().planes).toHaveLength(1)
+  expect(useFxStore.getState().flights).toHaveLength(0)
+})
+
+test('minimal level skips the flight and lands at once', () => {
+  localStorage.setItem('pp.fx', JSON.stringify({ level: 'minimal', sound: true, followReducedMotion: true }))
+  try {
+    fxRuntime.addThrow({ from: 'a', target: 'b', kind: 'roll' })
+    expect(useFxStore.getState().flights).toHaveLength(0)
+    expect(useFxStore.getState().hits.b).toMatchObject([{ kind: 'roll', level: 'minimal' }])
+  } finally { localStorage.removeItem('pp.fx') }
 })

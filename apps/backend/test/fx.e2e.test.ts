@@ -32,7 +32,7 @@ describe('fx channel', () => {
     const batch = await h.waitFor('fx:reactions')
     expect(batch.items.reduce((n: number, i: { count: number }) => n + i.count, 0)).toBe(5)
     expect(JSON.stringify(batch)).not.toContain(guests[0]!.pid)
-    expect((await ack(h, 'fx:react', { emoji: '💩' })).code).toBe('BAD_EMOJI')
+    expect((await ack(h, 'fx:react', { emoji: '🇻🇳' })).code).toBe('BAD_EMOJI')
   })
 
   test('spin: host only; everyone sees the same result', async () => {
@@ -64,5 +64,16 @@ describe('fx channel', () => {
     const thrown = await guests[1]!.peer.waitFor('fx:thrown')
     expect(thrown).toMatchObject({ target: guests[1]!.pid, kind: 'plane' })
     expect(JSON.stringify(h.state())).toBe(before)
+  })
+
+  test('fun items can hit someone who already voted; everyone sees who threw what', async () => {
+    const { host, h, guests } = await room(1)
+    await h.cmd({ type: 'addItems', items: [{ title: 'S' }] })
+    await h.cmd({ type: 'startRound', itemId: 'i1' })
+    await guests[0]!.peer.cmd({ type: 'vote', cardId: '5' })
+    expect((await ack(h, 'fx:throw', { target: guests[0]!.pid, kind: 'tomato' })).ok).toBe(true)
+    const thrown = await guests[0]!.peer.waitFor('fx:thrown')
+    expect(thrown).toMatchObject({ from: host.pid, target: guests[0]!.pid, kind: 'tomato' })
+    expect((await ack(h, 'fx:throw', { target: guests[0]!.pid, kind: 'rock' })).code).toBe('BAD_KIND')
   })
 })

@@ -56,7 +56,7 @@ export function HomePage() {
           <p className="max-w-[480px] text-lg leading-snug font-light text-muted-foreground sm:text-xl">{t('home.sub')}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button size="lg" asChild><Link to="/rooms/new">{t('home.createRoom')}</Link></Button>
-            <form onSubmit={enter} className="flex h-14 items-center gap-1.5 rounded-full bg-input pr-1.5 pl-5 sm:w-[340px]">
+            <form onSubmit={enter} className="flex h-14 items-center gap-1.5 rounded-xl bg-input pr-1.5 pl-4 sm:w-[340px]">
               <input
                 aria-label={t('home.codeLabel')}
                 value={code}

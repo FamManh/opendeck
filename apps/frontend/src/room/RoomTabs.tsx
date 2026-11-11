@@ -160,8 +160,8 @@ export function RoomTabs({ state, pid, isHost, canVote, send, onStart, onAdd, on
   const keys = split ? ['questions', 'notes', 'reasons'] : ['tasks', 'questions', 'notes', 'reasons']
   const tabs = (
     <Tabs value={tab} onValueChange={setTab} className="min-h-0 flex-1 gap-0">
-      <TabsList className={`mt-3 ml-3 h-auto w-auto flex-none flex-wrap justify-start gap-1 rounded-3xl bg-background p-1 ${split ? 'mr-3' : 'mr-11'}`}>
-        {keys.map(v => <TabsTrigger key={v} value={v} className="h-11 rounded-full px-3 text-[13px] font-semibold md:h-9">{label(v)}</TabsTrigger>)}
+      <TabsList className={`mt-4 ml-4 flex h-auto w-auto flex-none gap-1 bg-background p-1 ${split ? 'mr-4' : 'mr-14'}`}>
+        {keys.map(v => <TabsTrigger key={v} value={v} className="h-10 min-w-0 px-2 text-[13px] font-semibold md:h-8">{label(v)}</TabsTrigger>)}
       </TabsList>
       {!split && <TabsContent value="tasks" className="flex min-h-0 flex-col">{taskPanel}</TabsContent>}
       <TabsContent value="questions" className="flex min-h-0 flex-col"><QuestionsTab state={state} pid={pid} isHost={isHost} send={send} /></TabsContent>

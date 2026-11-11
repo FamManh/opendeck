@@ -9,6 +9,7 @@ import { deriveMascotState, SLEEP_AFTER_MS } from '@/fx/mascotState'
 import { useFxStore } from '@/fx/runtime'
 import { useRoomStore } from '@/store/roomStore'
 import { FxLayers } from './fx/FxLayers'
+import { useThrowItem } from './fx/ThrowMenu'
 import { Seat } from './Seat'
 import { seatLayout, type SeatDensity } from './seatLayout'
 
@@ -63,7 +64,7 @@ function CurrentTask({ state, isHost, onStart, onAdd, onSummary }: Omit<TablePro
       <div title={active.title} className="line-clamp-2 text-lg leading-snug font-semibold">{active.title}</div>
       {active.description && (
         <>
-          <button type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} className="flex h-11 items-center gap-1.5 self-start rounded-full bg-muted px-3 text-[13px] font-semibold md:h-8">
+          <button type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} className="flex h-11 items-center gap-1.5 self-start rounded-lg bg-muted px-3 text-[13px] font-semibold md:h-8">
             {t('room.details')}<ChevronDown className={`size-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
           </button>
           {open && <p className="max-h-24 overflow-y-auto text-[13px] leading-snug whitespace-pre-wrap">{active.description}</p>}
@@ -83,6 +84,17 @@ export function Table({ state, pid, isHost, onStart, onAdd, onSummary }: TablePr
   const discussion = useFxStore(s => s.discussion)
   const roundStartedAt = useFxStore(s => s.roundStartedAt)
   const sendFx = useRoomStore(s => s.sendFx)
+  const hits = useFxStore(s => s.hits)
+  const { throwItem, blocked: throwBlocked } = useThrowItem()
+  const myHit = pid ? hits[pid]?.at(-1) : undefined
+  useEffect(() => {
+    if (myHit?.kind !== 'bomb' || myHit.level === 'minimal') return
+    const shake = ref.current?.animate?.(
+      [0, -9, 8, -6, 5, -3, 2, 0].map((x, i) => ({ transform: `translate(${x}px, ${i % 2 ? 3 : -3}px)` })),
+      { duration: 480, easing: 'ease-out' },
+    )
+    return () => shake?.cancel()
+  }, [myHit?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     if (cur?.status !== 'voting') return
@@ -118,6 +130,9 @@ export function Table({ state, pid, isHost, onStart, onAdd, onSummary }: TablePr
         density={density}
         cardOffset={cardOffset}
         onThrow={asleep ? () => void sendFx('fx:throw', { target: p.id, kind: 'plane' }).catch(() => {}) : undefined}
+        onThrowItem={canThrow && p.id !== pid ? kind => throwItem(p.id, kind) : undefined}
+        throwBlocked={throwBlocked}
+        hits={hits[p.id]}
       />
     )
   }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { guest, room, run, T0 } from '../domain/room/testing'
 import type { Command, RoomState } from '../domain'
-import { FxService, REACTION_MAX, THROW_COOLDOWN_MS } from './fx.service'
+import { FxService, ITEM_MAX, ITEM_WINDOW_MS, REACTION_MAX, THROW_COOLDOWN_MS } from './fx.service'
 
 function make(rand: () => number = () => 0) {
   let now = T0
@@ -37,7 +37,7 @@ describe('react', () => {
   })
 
   test('rejects emoji outside the list', () => {
-    expect(make().fx.react('s', 'a', '💩')).toEqual({ ok: false, code: 'BAD_EMOJI' })
+    expect(make().fx.react('s', 'a', '🇻🇳')).toEqual({ ok: false, code: 'BAD_EMOJI' })
   })
 
   test('drain merges counts per emoji without pids, then empties', () => {
@@ -66,6 +66,27 @@ describe('throwAt', () => {
     expect(fx.throwAt('s', s, 'a', 'a', 'plane')).toEqual({ ok: false, code: 'BAD_TARGET' })
     expect(fx.throwAt('s', s, 'a', 'zz', 'plane')).toEqual({ ok: false, code: 'BAD_TARGET' })
     expect(fx.throwAt('s', s, 'a', 'c', 'rock')).toEqual({ ok: false, code: 'BAD_KIND' })
+  })
+
+  test('fun items hit anyone online at any time, limited per thrower', () => {
+    const { fx, advance } = make()
+    const s = voting({ b: '5' })
+    const results = Array.from({ length: ITEM_MAX + 1 }, () => fx.throwAt('s', s, 'a', 'b', 'tomato'))
+    expect(results.filter(r => r.ok)).toHaveLength(ITEM_MAX)
+    expect(results.at(-1)).toEqual({ ok: false, code: 'RATE_LIMITED' })
+    expect(fx.throwAt('s', s, 'c', 'b', 'heart').ok).toBe(true)
+    for (const kind of ['poop', 'arrow']) expect(fx.throwAt('s', s, 'H', 'b', kind).ok).toBe(true)
+    advance(ITEM_WINDOW_MS + 1)
+    expect(fx.throwAt('s', s, 'a', 'H', 'roll').ok).toBe(true)
+    expect(fx.throwAt('s', room(), 'a', 'b', 'heart')).toEqual({ ok: false, code: 'BAD_TARGET' })
+  })
+
+  test('fun items: not at yourself, but someone offline is fair game', () => {
+    const { fx } = make()
+    const s = voting()
+    expect(fx.throwAt('s', s, 'a', 'a', 'heart')).toEqual({ ok: false, code: 'BAD_TARGET' })
+    const off = { ...s, participants: { ...s.participants, b: { ...s.participants.b!, online: false } } }
+    expect(fx.throwAt('s', off, 'a', 'b', 'tomato').ok).toBe(true)
   })
 })
 

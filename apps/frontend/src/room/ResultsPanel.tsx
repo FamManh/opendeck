@@ -71,7 +71,7 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
           <span className="text-[13px] text-muted-foreground">{t('results.votes', { count: stats.total })}</span>
         </div>
         {stats.needsDiscussion && discussion && (
-          <div data-slot="discussion" role="status" className="rounded-2xl bg-warn/20 px-3 py-2 text-sm font-semibold">
+          <div data-slot="discussion" role="status" className="rounded-xl bg-warn/20 px-3 py-2 text-sm font-semibold">
             {t('results.discussion', { low: discussion.low.join(', '), high: discussion.high.join(', ') })}
           </div>
         )}
@@ -96,7 +96,7 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
                 type="button"
                 aria-pressed={!custom.trim() && value === c.id}
                 onClick={() => { setPicked(c.id); setCustom('') }}
-                className={`h-11 min-w-9 flex-1 rounded-full border-2 px-1 text-sm font-semibold md:h-9 ${!custom.trim() && value === c.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'}`}
+                className={`h-11 min-w-9 flex-1 rounded-lg border-2 px-1 text-sm font-semibold md:h-9 ${!custom.trim() && value === c.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'}`}
               >{c.label}</button>
             ))}
           </div>

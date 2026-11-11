@@ -21,14 +21,14 @@ export function AuthLayout({ title, subtitle, tabs, children }: { title: string;
             <p className="text-lg leading-snug font-light text-muted-foreground">{subtitle}</p>
           </div>
           {tabs && (
-            <div className="flex rounded-full bg-muted p-1" role="tablist">
+            <div className="flex rounded-xl bg-muted p-1" role="tablist">
               {(['login', 'register'] as const).map(k => (
                 <Link
                   key={k}
                   to={`/${k}`}
                   role="tab"
                   aria-selected={tabs === k}
-                  className={`flex h-10 flex-1 items-center justify-center rounded-full text-[15px] font-semibold ${tabs === k ? 'bg-background' : 'text-muted-foreground'}`}
+                  className={`flex h-10 flex-1 items-center justify-center rounded-lg text-[15px] font-semibold ${tabs === k ? 'bg-background' : 'text-muted-foreground'}`}
                 >
                   {t(k === 'login' ? 'auth.tabLogin' : 'auth.tabRegister')}
                 </Link>

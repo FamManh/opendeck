@@ -27,7 +27,7 @@ export function ParticipantsSheet({ state, me, isHost, send }: ParticipantsSheet
     <>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" className="h-10 bg-background px-3" aria-label={t('people.open')}><Users />{people.length}</Button>
+          <Button variant="outline" className="h-10 rounded-full bg-background px-3" aria-label={t('people.open')}><Users />{people.length}</Button>
         </SheetTrigger>
         <SheetContent side={mobile ? 'bottom' : 'right'} className="gap-3 overflow-y-auto p-5 data-[side=bottom]:max-h-[85svh] data-[side=right]:h-svh">
           <SheetHeader className="p-0">
@@ -40,7 +40,7 @@ export function ParticipantsSheet({ state, me, isHost, send }: ParticipantsSheet
               const guest = p.userId === null
               const successor = state.successorId === p.id
               return (
-                <li key={p.id} data-slot="person" data-pid={p.id} className={`flex min-h-14 items-center gap-2.5 rounded-2xl bg-muted px-2.5 py-1.5 ${p.online ? '' : 'opacity-60'}`}>
+                <li key={p.id} data-slot="person" data-pid={p.id} className={`flex min-h-14 items-center gap-2.5 rounded-xl bg-muted px-2.5 py-1.5 ${p.online ? '' : 'opacity-60'}`}>
                   <div className="size-9 flex-none"><Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={p.online ? 'idle' : 'away'} /></div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{p.name}{self ? ` · ${t('room.you')}` : ''}</div>

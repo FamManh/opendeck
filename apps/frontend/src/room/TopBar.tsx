@@ -75,12 +75,12 @@ export function TopBar({ name, slug, hasPassword, state, me, isHost, send }: Top
         <h1 className="truncate text-sm font-semibold">{name}</h1>
         <div className="truncate text-xs text-muted-foreground">{t('room.peopleCount', { players: people.length - observers, observers })}</div>
       </div>
-      <Button variant="outline" className="h-10 bg-background font-mono text-xs" aria-label={t('room.copyLink')} title={t('room.copyLink')} onClick={copy}>{slug}<Copy /></Button>
+      <Button variant="outline" className="h-10 rounded-full bg-background font-mono text-xs" aria-label={t('room.copyLink')} title={t('room.copyLink')} onClick={copy}>{slug}<Copy /></Button>
       {timer}
       {cur?.status === 'voting' && <span data-slot="voted-count" className="flex h-10 flex-none items-center rounded-full bg-background px-3 text-sm font-semibold tabular-nums">{t('room.votedCount', { voted: cur.voted.length, total: voters.length })}</span>}
       {menus}
       {isHost && cur?.status === 'voting' && (
-        <Button className="h-10" disabled={cur.voted.length === 0} onClick={() => void send({ type: 'reveal' }).catch(() => {})}><RotateCw />{t('room.reveal')}</Button>
+        <Button className="h-10 rounded-full" disabled={cur.voted.length === 0} onClick={() => void send({ type: 'reveal' }).catch(() => {})}><RotateCw />{t('room.reveal')}</Button>
       )}
     </header>
   )

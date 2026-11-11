@@ -37,7 +37,7 @@ export function EditItemDialog({ item, onClose, send }: { item: Item; onClose: (
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="edit-desc">{t('addItems.descLabel')}</Label>
-          <textarea id="edit-desc" className="min-h-28 w-full resize-none rounded-2xl bg-input p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" value={desc} onChange={e => setDesc(e.target.value)} />
+          <textarea id="edit-desc" className="min-h-28 w-full resize-none rounded-xl bg-input p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" value={desc} onChange={e => setDesc(e.target.value)} />
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>

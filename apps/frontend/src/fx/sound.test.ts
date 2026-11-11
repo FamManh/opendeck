@@ -25,7 +25,7 @@ test('unlock synthesizes the sounds and play starts a source', async () => {
   const bank = new SoundBank(() => ctx as never)
   await bank.unlock()
   expect(ctx.resume).toHaveBeenCalled()
-  expect(ctx.createBuffer).toHaveBeenCalledTimes(3)
+  expect(ctx.createBuffer).toHaveBeenCalledTimes(8)
   bank.play('flip')
   expect(start).toHaveBeenCalledTimes(1)
 })

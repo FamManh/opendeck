@@ -98,7 +98,7 @@
     --chart-3: #2F4B7C;
     --chart-4: #5CC8C2;
     --chart-5: #A68BFF;
-    --radius: 1.5rem;
+    --radius: 0.5rem;
     --sidebar: #F3F3F3;
     --sidebar-foreground: #141414;
     --sidebar-primary: #FFB627;
@@ -188,4 +188,20 @@
   h1, h2, h3, h4 {
     font-weight: 650;
     }
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="radio"],
+  [role="menuitem"],
+  [role="option"],
+  label[for],
+  summary,
+  select,
+  input[type="file"],
+  input[type="file"]::file-selector-button {
+    cursor: pointer;
+  }
 }

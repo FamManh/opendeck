@@ -1,6 +1,12 @@
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Crown, Eye } from 'lucide-react'
 import { Mascot, isSpecies, type MascotState } from '@/components/game/Mascot'
+import { NotoEmoji } from '@/components/game/NotoEmoji'
+import type { Hit } from '@/fx/runtime'
+import { hitJitter, type ItemKind } from '@/fx/throws'
+import { Arrow } from './fx/Arrow'
+import { ThrowMenu } from './fx/ThrowMenu'
 import { PokerCard } from '@/components/game/PokerCard'
 import type { Participant } from '@/domain'
 import { SEAT_SIZE, type SeatDensity } from './seatLayout'
@@ -24,6 +30,58 @@ export interface SeatProps {
   /** Where the card sits relative to the seat centre; without it the card stays on the mascot. */
   cardOffset?: { x: number; y: number } | null | undefined
   onThrow?: (() => void) | undefined
+  /** Makes the avatar a button that opens the throw tray. */
+  onThrowItem?: ((kind: ItemKind) => void) | undefined
+  throwBlocked?: boolean
+  /** Things currently stuck on this seat, oldest first (each cleared after HIT_MS). */
+  hits?: Hit[] | undefined
+}
+
+const HIT_ANIM: Record<ItemKind, string> = {
+  tomato: 'animate-pp-squash', poop: 'animate-pp-squash', roll: 'animate-pp-squash', arrow: 'animate-pp-squash', bomb: 'animate-pp-squash', heart: 'animate-pp-love',
+}
+const SPLAT: Partial<Record<ItemKind, { color: string; opacity: number }>> = {
+  tomato: { color: '#e5383b', opacity: 0.88 }, poop: { color: '#7b4a2a', opacity: 0.9 }, bomb: { color: '#262626', opacity: 0.7 },
+}
+const BADGE: Partial<Record<ItemKind, string>> = { poop: '🪰', roll: '😵‍💫', heart: '💕' }
+
+/** Juice / mud / soot over the face; drawn so it reads at every seat size. */
+function Splat({ still, color, opacity }: { still: boolean; color: string; opacity: number }) {
+  return (
+    <svg data-slot="splat" viewBox="0 0 64 64" aria-hidden className={`pointer-events-none absolute inset-[-12%] z-10 ${still ? '' : 'animate-pp-splat'}`}>
+      <path fill={color} fillOpacity={opacity} d="M32 10c5 0 6 6 10 6s7-4 10-1-1 7 1 10 8 3 7 8-6 4-6 8 4 8 0 10-7-2-10 1-3 9-8 9-5-6-9-6-7 5-10 2 1-7-2-10-9-2-9-7 6-4 6-8-6-6-3-9 7 1 9-2-1-9 3-11 6 2 8 2 3-10 8-10Z" />
+      <circle cx="12" cy="52" r="3" fill={color} fillOpacity=".8" /><circle cx="54" cy="12" r="2.5" fill={color} fillOpacity=".8" />
+      <circle cx="26" cy="28" r="3" fill="#fff" fillOpacity=".55" />
+    </svg>
+  )
+}
+
+function HitOverlay({ hit, index }: { hit: Hit; index: number }) {
+  const still = hit.level === 'minimal'
+  const splat = SPLAT[hit.kind]
+  const badge = BADGE[hit.kind]
+  const j = hitJitter(index, hit.id)
+  return (
+    <span data-slot="hit" data-kind={hit.kind} aria-hidden className="pointer-events-none absolute inset-0" style={{ transform: `translate(${j.x}%, ${j.y}%) rotate(${j.rot}deg)` }}>
+      {splat && <Splat still={still} {...splat} />}
+      {hit.kind === 'arrow' && (
+        // Tip buried at the centre of the face, shaft sticking out to the upper left; it twangs on impact.
+        <span data-slot="stuck-arrow" aria-hidden className="pointer-events-none absolute top-[22%] left-[-45%] z-10 block w-[95%] origin-right rotate-[28deg]">
+          <span className={`block origin-right ${still ? '' : 'animate-pp-quiver'}`}><Arrow buried className="block w-full" /></span>
+        </span>
+      )}
+      {hit.kind === 'bomb' && !still && (
+        <span data-slot="boom" aria-hidden className="animate-pp-boom pointer-events-none absolute inset-[-40%] z-20">
+          <NotoEmoji emoji="💥" animated className="size-full" />
+        </span>
+      )}
+      {badge && (
+        <span data-slot="hit-badge" aria-hidden className={`pointer-events-none absolute -top-4 left-1/2 z-10 -ml-3.5 ${still ? '' : 'animate-pp-float-up'}`}>
+          <NotoEmoji emoji={badge} animated={!still} className="size-7" />
+        </span>
+      )}
+    </span>
+  )
 }
 
 const MASCOT: Record<SeatStatus, MascotState> = {
@@ -42,7 +100,8 @@ export function seatStatus(p: Participant, voted: boolean, revealed: boolean, ha
   return revealed ? 'novote' : 'thinking'
 }
 
-export function Seat({ participant: p, voted, vote, revealed, hasRound = true, isHost, isMe, mascot, spot, density = 'normal', cardOffset, onThrow }: SeatProps) {
+export function Seat({ participant: p, voted, vote, revealed, hasRound = true, isHost, isMe, mascot, spot, density = 'normal', cardOffset, onThrow, onThrowItem, throwBlocked = false, hits = [] }: SeatProps) {
+  const hit = hits.at(-1)
   const { t } = useTranslation()
   const status = seatStatus(p, voted, revealed, hasRound)
   const showCard = p.role === 'voter' && voted
@@ -50,6 +109,9 @@ export function Seat({ participant: p, voted, vote, revealed, hasRound = true, i
   const dense = density === 'dense'
   const size = SEAT_SIZE[density]
   const card = <PokerCard value={face ? vote : ''} faceUp={face} compact />
+  const Avatar = onThrowItem ? 'button' : 'div'
+  const wrapAvatar = (el: ReactElement) =>
+    onThrowItem ? <ThrowMenu name={p.name} blocked={throwBlocked} onPick={onThrowItem}>{el}</ThrowMenu> : el
   return (
     <div
       data-slot="seat"
@@ -61,12 +123,22 @@ export function Seat({ participant: p, voted, vote, revealed, hasRound = true, i
       style={{ width: size.w, height: size.h }}
       className={`relative flex flex-col items-center gap-0.5 transition-opacity duration-300 ${status === 'offline' ? 'opacity-45' : ''}`}
     >
-      <div className={`relative flex-none ${MASCOT_SIZE[density]} rounded-full ${spot ? 'ring-4 ring-primary' : ''}`}>
-        <Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={mascot ?? MASCOT[status]} />
+      {wrapAvatar(
+        <Avatar
+          {...(onThrowItem ? { type: 'button' as const, 'aria-label': t('fx.throwAt', { name: p.name }) } : {})}
+          data-slot="seat-avatar"
+          className={`relative block flex-none ${MASCOT_SIZE[density]} rounded-full ${spot ? 'ring-4 ring-primary' : ''} ${onThrowItem ? 'cursor-pointer outline-none focus-visible:ring-4 focus-visible:ring-ring' : ''}`}
+        >
+        {/* Keyed by hit id so every new hit restarts the squash. */}
+        <div key={`m${hit?.id ?? 0}`} className={`size-full ${hit && hit.level !== 'minimal' ? HIT_ANIM[hit.kind] : ''}`}>
+          <Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={mascot ?? MASCOT[status]} />
+        </div>
+        {hits.map((h, i) => <HitOverlay key={`h${h.id}`} hit={h} index={i} />)}
         {isHost && <Crown aria-label={t('room.host')} className="absolute -top-1 -right-1 size-5 rounded-full bg-primary p-1 text-primary-foreground" />}
         {p.role === 'observer' && <Eye aria-label={t('room.status.observer')} className="absolute -right-1 -bottom-1 size-5 rounded-full bg-muted p-1" />}
         {showCard && !cardOffset && <div className="absolute -right-3 -bottom-1 z-10 h-[34px] w-6">{card}</div>}
-      </div>
+        </Avatar>,
+      )}
       {showCard && cardOffset && (
         <div className="absolute top-1/2 left-1/2 z-10 h-12 w-[34px]" style={{ transform: `translate(calc(-50% + ${cardOffset.x}px), calc(-50% + ${cardOffset.y}px))` }}>{card}</div>
       )}

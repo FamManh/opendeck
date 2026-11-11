@@ -130,9 +130,9 @@ export function CreateRoomPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <span className="text-[13px] font-semibold">{t('createRoom.access')}</span>
-              <div className="flex rounded-full bg-muted p-1" role="radiogroup">
+              <div className="flex rounded-xl bg-muted p-1" role="radiogroup">
                 {([false, true] as const).map(pw => (
-                  <button key={String(pw)} type="button" role="radio" aria-checked={usePassword === pw} onClick={() => setUsePassword(pw)} className={`h-11 flex-1 rounded-full text-[15px] font-semibold ${usePassword === pw ? 'bg-background' : 'text-muted-foreground'}`}>
+                  <button key={String(pw)} type="button" role="radio" aria-checked={usePassword === pw} onClick={() => setUsePassword(pw)} className={`h-11 flex-1 rounded-lg text-[15px] font-semibold ${usePassword === pw ? 'bg-background' : 'text-muted-foreground'}`}>
                     {t(pw ? 'createRoom.withPassword' : 'createRoom.public')}
                   </button>
                 ))}

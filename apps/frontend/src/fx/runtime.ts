@@ -7,16 +7,26 @@ import { FpsGovernor } from './governor'
 import { type FxLevel, getFxSettings, setGovernorCap, soundEnabled } from './prefs'
 import { soundBank } from './sound'
 import { planFinalize, planReveal, type Step } from './timeline'
+import { FLIGHT_MS, HIT_MS, isItemKind, MAX_HITS_PER_SEAT, type ItemKind, type NudgeKind, type ThrowKind } from './throws'
 
 export const MAX_FLOATING_REACTIONS = 30
-export const REACTION_FLOAT_MS = 1600
+/** Longest a floating reaction lives: max rise time plus max start stagger. */
+export const REACTION_FLOAT_MS = 4200
+const RISE_MIN_MS = 2600
+const RISE_SPREAD_MS = 1000
+const STAGGER_MS = 120
 const AWAIT_EVENTS_MS = 400
 const CONSENSUS_MS = 2000
 
 export interface FxHold { flipped: Set<string>; all: boolean }
 export interface Discussion { low: string[]; high: string[] }
-export interface FloatingReaction { id: number; emoji: string; x: number }
-export interface Plane { id: number; from: string; target: string; kind: 'paper' | 'plane' }
+/** `x` in % of the layer width; `dur`/`delay` in ms. */
+export interface FloatingReaction { id: number; emoji: string; x: number; dur: number; delay: number }
+export interface Plane { id: number; from: string; target: string; kind: NudgeKind }
+/** A fun item in the air; `level` is frozen at throw time so a mid-flight downgrade can't half-play it. */
+export interface Flight { id: number; from: string; target: string; kind: ItemKind; level: FxLevel }
+/** One thing that landed on a seat; hits on the same seat stack, the newest restarts the squash. */
+export interface Hit { id: number; kind: ItemKind; level: FxLevel }
 export interface Spin { chosen: 'low' | 'high'; pid: string; turns: number }
 
 interface FxStore {
@@ -30,12 +40,15 @@ interface FxStore {
   roundStartedAt: number
   floating: FloatingReaction[]
   planes: Plane[]
+  flights: Flight[]
+  /** Active hits per target pid, oldest first. */
+  hits: Record<string, Hit[]>
   spin: Spin | null
 }
 
 const initial: FxStore = {
   hold: null, countdown: null, moment: null, discussion: null, stamp: false,
-  roundKey: null, roundStartedAt: Date.now(), floating: [], planes: [], spin: null,
+  roundKey: null, roundStartedAt: Date.now(), floating: [], planes: [], flights: [], hits: {}, spin: null,
 }
 
 export const useFxStore = create<FxStore>(() => ({ ...initial }))
@@ -58,6 +71,15 @@ const governor = new FpsGovernor({
   },
 })
 
+// The governor samples while any heavy effect runs: the reveal timeline or the throw physics.
+const sampling = new Set<'reveal' | 'physics'>()
+function sample(reason: 'reveal' | 'physics', on: boolean) {
+  if (on) sampling.add(reason)
+  else sampling.delete(reason)
+  if (sampling.size) governor.startSampling()
+  else governor.stopSampling()
+}
+
 function later(ms: number, fn: () => void) {
   const id = setTimeout(() => { timers.delete(id); fn() }, ms)
   timers.add(id)
@@ -65,7 +87,7 @@ function later(ms: number, fn: () => void) {
 
 function cancelTimeline() {
   director.cancel()
-  governor.stopSampling()
+  sample('reveal', false)
   if (awaitTimer) clearTimeout(awaitTimer)
   awaitTimer = null
   timers.forEach(clearTimeout)
@@ -87,7 +109,7 @@ function apply(step: Step, sound: boolean) {
       if (sound) soundBank.play('flip')
       break
     case 'results':
-      governor.stopSampling()
+      sample('reveal', false)
       set({ hold: null, countdown: null })
       break
     case 'moment':
@@ -98,6 +120,8 @@ function apply(step: Step, sound: boolean) {
       break
   }
 }
+
+const HIT_SOUND = { tomato: 'splat', poop: 'splat', roll: 'bonk', arrow: 'thunk', bomb: 'boom', heart: 'pop' } as const
 
 const keyOf = (s: PublicRoomState | null) => (s?.current ? `${s.current.itemId}:${s.current.number}` : null)
 
@@ -131,7 +155,7 @@ export const fxRuntime = {
         .sort((a, b) => a.joinedAt - b.joinedAt)
         .map(p => p.id)
       set({ hold: { flipped: new Set(), all: false }, countdown: null, moment: null, discussion: disc ? { low: disc.lowPids, high: disc.highPids } : null })
-      governor.startSampling()
+      sample('reveal', true)
       director.play(planReveal(level, seatOrder, cur.stats), s => apply(s, sound))
     }
     const fin = events.find((e): e is Extract<DomainEvent, { type: 'finalized' }> => e.type === 'finalized')
@@ -142,7 +166,15 @@ export const fxRuntime = {
     const room = MAX_FLOATING_REACTIONS - get().floating.length
     const add: FloatingReaction[] = []
     for (const { emoji, count } of items) {
-      for (let i = 0; i < count && add.length < room; i++) add.push({ id: ++seq, emoji, x: 10 + Math.random() * 80 })
+      for (let i = 0; i < count && add.length < room; i++) {
+        add.push({
+          id: ++seq,
+          emoji,
+          x: 6 + Math.random() * 88,
+          dur: RISE_MIN_MS + Math.random() * RISE_SPREAD_MS,
+          delay: Math.min(add.length * STAGGER_MS, REACTION_FLOAT_MS - RISE_MIN_MS - RISE_SPREAD_MS),
+        })
+      }
     }
     if (add.length === 0) return
     set(s => ({ floating: [...s.floating, ...add] }))
@@ -155,6 +187,34 @@ export const fxRuntime = {
     set(s => ({ planes: [...s.planes, plane] }))
     setTimeout(() => set(s => ({ planes: s.planes.filter(x => x.id !== plane.id) })), 1300)
   },
+
+  /** `fx:thrown`: nudges keep the paper-plane path; items fly, then land as a hit on the target. */
+  addThrow(p: { from: string; target: string; kind: ThrowKind }) {
+    if (!isItemKind(p.kind)) { fxRuntime.addPlane({ from: p.from, target: p.target, kind: p.kind }); return }
+    const { level, prefs } = getFxSettings()
+    const id = ++seq
+    const flight: Flight = { id, from: p.from, target: p.target, kind: p.kind, level }
+    const land = () => {
+      set(s => ({
+        flights: s.flights.filter(f => f.id !== id),
+        hits: { ...s.hits, [p.target]: [...(s.hits[p.target] ?? []), { id, kind: flight.kind, level }].slice(-MAX_HITS_PER_SEAT) },
+      }))
+      if (soundEnabled(prefs, level)) soundBank.play(HIT_SOUND[flight.kind])
+      setTimeout(() => set(s => {
+        const list = s.hits[p.target]
+        if (!list?.some(h => h.id === id)) return s
+        const left = list.filter(h => h.id !== id)
+        const { [p.target]: _, ...rest } = s.hits
+        return { hits: left.length ? { ...rest, [p.target]: left } : rest }
+      }), HIT_MS)
+    }
+    if (level === 'minimal') { land(); return }
+    set(s => ({ flights: [...s.flights, flight] }))
+    setTimeout(land, FLIGHT_MS)
+  },
+
+  /** The throw layer reports when debris is moving so slow machines get downgraded like during a reveal. */
+  physicsActive(on: boolean) { sample('physics', on) },
 
   setSpin(spin: Spin) { set({ spin }) },
 
@@ -180,6 +240,7 @@ export const fxRuntime = {
 
   reset() {
     cancelTimeline()
+    sample('physics', false)
     finalDirector.cancel()
     set({ ...initial, roundStartedAt: Date.now() })
   },

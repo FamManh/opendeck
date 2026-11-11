@@ -87,7 +87,7 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
       data-slot="card-fan"
       role="group"
       aria-label={t('room.fanLabel')}
-      className={`flex items-end px-4 [&::-webkit-scrollbar]:hidden ${mobile ? 'justify-start overflow-x-auto pt-2 pb-2' : 'justify-center pt-12 pb-2'}`}
+      className={`flex items-end [&::-webkit-scrollbar]:hidden ${mobile ? 'justify-start overflow-x-auto px-5 pt-4 pb-3' : 'justify-center px-4 pt-12 pb-2'}`}
     >
       {deck.map((c, i) => {
         const selected = c.id === myVote
@@ -113,7 +113,7 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
               transform: dragging ? `translate(${drag.dx}px, ${drag.dy}px) scale(1.05)` : `translateY(${lift}px) rotate(${turn}deg)`,
               touchAction: mobile ? 'pan-x' : 'none',
             }}
-            className={`relative h-[114px] w-20 flex-none cursor-grab select-none focus-visible:outline-2 focus-visible:outline-ring ${dragging ? '' : 'transition-transform duration-200 hover:-translate-y-2.5'}`}
+            className={`relative h-[114px] w-20 flex-none cursor-grab select-none focus-visible:outline-2 focus-visible:outline-ring ${dragging ? '' : `transition-transform duration-200 ${mobile ? '' : 'hover:-translate-y-2.5'}`}`}
           >
             <PokerCard value={c.id} selected={selected} dim={myVote !== null && !selected} />
           </button>

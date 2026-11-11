@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import i18n from '@/i18n'
 import type { Command, DomainEvent, PublicRoomState } from '@/domain'
 import { fxRuntime } from '@/fx/runtime'
+import type { ThrowKind } from '@/fx/throws'
 import { createRoomSocket, type RoomSocket, type SocketFactory } from '@/realtime/socket'
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
@@ -25,7 +26,7 @@ interface RoomStore {
   connect: (slug: string, factory?: SocketFactory) => void
   disconnect: () => void
   send: (cmd: ClientCommand) => Promise<void>
-  /** Ephemeral fx channel (reactions, paper planes, wheel); never touches room state. */
+  /** Ephemeral fx channel (reactions, thrown items, wheel); never touches room state. */
   sendFx: (event: 'fx:react' | 'fx:throw' | 'fx:spin', payload?: object) => Promise<void>
 }
 
@@ -64,7 +65,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       fxRuntime.onEvents(events, get().state)
     })
     s.on('fx:reactions', (p: { items: { emoji: string; count: number }[] }) => { if (socket === s) fxRuntime.addReactions(p.items) })
-    s.on('fx:thrown', (p: { from: string; target: string; kind: 'paper' | 'plane' }) => { if (socket === s) fxRuntime.addPlane(p) })
+    s.on('fx:thrown', (p: { from: string; target: string; kind: ThrowKind }) => { if (socket === s) fxRuntime.addThrow(p) })
     s.on('fx:spun', (p: { chosen: 'low' | 'high'; pid: string; turns: number }) => { if (socket === s) fxRuntime.setSpin(p) })
     s.on('approval:pending', live(() => set({ connection: 'pending' })))
     s.on('kicked', live(() => set({ connection: 'kicked' })))

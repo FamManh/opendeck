@@ -70,7 +70,7 @@ export function TaskPanel({ items, outcomes, currentItemId, isHost, onStart, onA
           const rounds = history.filter(r => r.itemId === item.id)
           const expanded = open === item.id
           return (
-            <li key={item.id} data-status={item.status} aria-current={current ? 'true' : undefined} className={`flex flex-col rounded-2xl px-2.5 py-2 ${current ? 'bg-background' : ''}`}>
+            <li key={item.id} data-status={item.status} aria-current={current ? 'true' : undefined} className={`flex flex-col rounded-xl px-2.5 py-2 ${current ? 'bg-background' : ''}`}>
               <div className="flex min-h-7 items-center gap-2">
                 {item.status === 'done'
                   ? <span className="flex size-[22px] flex-none items-center justify-center rounded-full bg-good text-white"><Check className="size-3.5" strokeWidth={3.4} /></span>
@@ -81,7 +81,7 @@ export function TaskPanel({ items, outcomes, currentItemId, isHost, onStart, onA
                   {item.externalRef && <div className="text-xs font-semibold text-muted-foreground">{item.externalRef}</div>}
                   <div className="truncate text-sm" title={item.title}>{item.title}</div>
                 </div>
-                {outcome && <span data-slot="outcome" className="flex h-7 min-w-[30px] flex-none items-center justify-center rounded-[9px] bg-primary px-2 text-[13px] font-semibold text-primary-foreground">{outcome.value}</span>}
+                {outcome && <span data-slot="outcome" className="flex h-7 min-w-[30px] flex-none items-center justify-center rounded-md bg-primary px-2 text-[13px] font-semibold text-primary-foreground">{outcome.value}</span>}
                 {rounds.length > 0 && (
                   <Button size="icon" variant="ghost" className="size-8" aria-expanded={expanded} aria-label={t('room.showHistory', { title: item.title })} onClick={() => setOpen(expanded ? null : item.id)}>
                     <ChevronDown className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
