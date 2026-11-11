@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import type { DomainEvent, PublicRoomState } from '@/domain'
-import { fxRuntime, REACTION_FLOAT_MS, useFxStore } from './runtime'
+import { BOMB_MS, fxRuntime, REACTION_FLOAT_MS, useFxStore, YAWN_MS } from './runtime'
 import { FLIGHT_MS, HIT_MS, MAX_HITS_PER_SEAT } from './throws'
 
 const stats = { consensusLevel: 'absolute', needsDiscussion: false, modes: [{ id: '5', label: '5', numeric: 5, special: false }], distribution: [{ card: { id: '5', label: '5', numeric: 5, special: false }, count: 2 }], min: null, max: null }
@@ -101,4 +101,16 @@ test('minimal level skips the flight and lands at once', () => {
     expect(useFxStore.getState().flights).toHaveLength(0)
     expect(useFxStore.getState().hits.b).toMatchObject([{ kind: 'roll', level: 'minimal' }])
   } finally { localStorage.removeItem('pp.fx') }
+})
+
+test('bomb: the blast moment ends by itself; a ☕ round yawns then stops', () => {
+  const big = { ...stats, spreadSteps: 4, needsDiscussion: true, consensusLevel: 'low', distribution: [...stats.distribution, { card: { id: 'coffee', label: 'coffee', numeric: null, special: true }, count: 1 }] }
+  const v = mk('voting'); const r = mk('revealed')
+  r.current!.stats = big as never
+  fxRuntime.onState(null, v); fxRuntime.onState(v, r); fxRuntime.onEvents(revealedEvt, r)
+  vi.advanceTimersByTime(3000)
+  expect(useFxStore.getState().yawn).toBe(true)
+  vi.advanceTimersByTime(BOMB_MS + YAWN_MS)
+  expect(useFxStore.getState().moment).toBeNull()
+  expect(useFxStore.getState().yawn).toBe(false)
 })

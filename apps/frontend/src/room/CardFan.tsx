@@ -26,6 +26,9 @@ export function fanStep(count: number, width: number): number {
   return Math.min(CARD_W - 8, (width - CARD_W - 32) / (count - 1))
 }
 
+/** Below this spacing the fan hides too much of each card (portrait tablets): fall back to a scrolling row. */
+export const MIN_FAN_STEP = 40
+
 interface Drag { id: string; startX: number; startY: number; dx: number; dy: number; moved: boolean }
 
 export function CardFan({ scale, enabledSpecials, myVote, observer = false, send }: CardFanProps) {
@@ -35,6 +38,9 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
   const [drag, setDrag] = useState<Drag | null>(null)
   const justDragged = useRef(false)
   const deck = deckOf(scale, enabledSpecials)
+  const fit = fanStep(deck.length, size.w)
+  // `row`: cards side by side in a horizontal scroller (phones, or a column too narrow for a readable fan).
+  const row = mobile || (size.w > 0 && fit < MIN_FAN_STEP)
 
   const pick = (cardId: string) => {
     if (justDragged.current) { justDragged.current = false; return }
@@ -63,8 +69,8 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
     if (!drag) return
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
-    // On phones a sideways swipe scrolls the row; only an upward move picks the card up.
-    const moved = drag.moved || (mobile ? -dy > DRAG_START_PX : Math.hypot(dx, dy) > DRAG_START_PX)
+    // In a scrolling row a sideways swipe scrolls; only an upward move picks the card up.
+    const moved = drag.moved || (row ? -dy > DRAG_START_PX : Math.hypot(dx, dy) > DRAG_START_PX)
     if (moved && !drag.moved) e.currentTarget.setPointerCapture?.(e.pointerId)
     setDrag({ ...drag, dx, dy, moved })
   }
@@ -80,22 +86,22 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
 
   if (observer) return null
   const mid = (deck.length - 1) / 2
-  const step = mobile ? CARD_W - 8 : fanStep(deck.length, size.w)
+  const step = row ? CARD_W - 8 : fit
   return (
     <div
       ref={ref}
       data-slot="card-fan"
       role="group"
       aria-label={t('room.fanLabel')}
-      className={`flex items-end [&::-webkit-scrollbar]:hidden ${mobile ? 'justify-start overflow-x-auto px-5 pt-4 pb-3' : 'justify-center px-4 pt-12 pb-2'}`}
+      className={`flex items-end [&::-webkit-scrollbar]:hidden ${row ? 'justify-start overflow-x-auto px-5 pt-4 pb-3' : 'justify-center px-4 pt-12 pb-2'}`}
     >
       {deck.map((c, i) => {
         const selected = c.id === myVote
         const label = isSpecialId(c.id) ? t(`cards.special.${c.id}`) : c.label
         const off = i - mid
         const dragging = drag?.id === c.id && drag.moved
-        const lift = mobile ? (selected ? -6 : 0) : (selected ? -34 : 0) + (off * off - mid * mid) * 0.5
-        const turn = mobile || selected ? 0 : off * 2.5
+        const lift = row ? (selected ? -6 : 0) : (selected ? -34 : 0) + (off * off - mid * mid) * 0.5
+        const turn = row || selected ? 0 : off * 2.5
         return (
           <button
             key={c.id}
@@ -111,9 +117,9 @@ export function CardFan({ scale, enabledSpecials, myVote, observer = false, send
               marginLeft: i === 0 ? 0 : step - CARD_W,
               zIndex: dragging ? 30 : selected ? 20 : undefined,
               transform: dragging ? `translate(${drag.dx}px, ${drag.dy}px) scale(1.05)` : `translateY(${lift}px) rotate(${turn}deg)`,
-              touchAction: mobile ? 'pan-x' : 'none',
+              touchAction: row ? 'pan-x' : 'none',
             }}
-            className={`relative h-[114px] w-20 flex-none cursor-grab select-none focus-visible:outline-2 focus-visible:outline-ring ${dragging ? '' : `transition-transform duration-200 ${mobile ? '' : 'hover:-translate-y-2.5'}`}`}
+            className={`relative h-[114px] w-20 flex-none cursor-grab select-none focus-visible:outline-2 focus-visible:outline-ring ${dragging ? '' : `transition-transform duration-200 ${row ? '' : 'hover:-translate-y-2.5'}`}`}
           >
             <PokerCard value={c.id} selected={selected} dim={myVote !== null && !selected} />
           </button>

@@ -55,3 +55,15 @@ test('planFinalize full: stamp at 0, slideDone at 800; minimal: both at 0', () =
   expect(planFinalize('full', 'i1').map(s => s.at)).toEqual([0, 800])
   expect(planFinalize('minimal', 'i1').map(s => s.at)).toEqual([0, 0])
 })
+
+test('a 3+ step gap sets off the bomb instead of the plot twist; a 2 step gap is still a twist', () => {
+  const names = (s: ReturnType<typeof planReveal>) => s.flatMap(x => (x.kind === 'moment' ? [x.name] : []))
+  expect(names(planReveal('full', [], st({ spreadSteps: 3, needsDiscussion: true, consensusLevel: 'low' })))).toEqual(['bomb'])
+  expect(names(planReveal('full', [], st({ spreadSteps: 2, needsDiscussion: true, consensusLevel: 'medium' })))).toEqual(['twist'])
+})
+
+test('a ☕ vote makes everyone yawn, at every level', () => {
+  const coffee = st({ distribution: [{ card: { id: 'coffee', label: 'coffee', numeric: null, special: true }, count: 1 }] as RoundStats['distribution'] })
+  for (const level of ['full', 'medium', 'minimal'] as const) expect(planReveal(level, [], coffee).some(x => x.kind === 'yawn')).toBe(true)
+  expect(planReveal('full', [], st({})).some(x => x.kind === 'yawn')).toBe(false)
+})

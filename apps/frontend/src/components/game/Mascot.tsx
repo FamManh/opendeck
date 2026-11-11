@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 
 export const SPECIES = ['cat', 'capybara', 'robot', 'dino', 'owl', 'bunny', 'koala', 'fox'] as const
 export type Species = (typeof SPECIES)[number]
-export const MASCOT_STATES = ['idle', 'thinking', 'voted', 'sleeping', 'celebrating', 'away'] as const
+/** `dancing` / `yawning` are the reaction states (CSS-animated in fx.css; a Rive `.riv` with the same state names can replace them). */
+export const MASCOT_STATES = ['idle', 'thinking', 'voted', 'sleeping', 'celebrating', 'dancing', 'yawning', 'away'] as const
 export type MascotState = (typeof MASCOT_STATES)[number]
 
 export function isSpecies(v: unknown): v is Species {
@@ -94,6 +95,20 @@ const BODIES: Record<Species, ReactNode> = {
   ),
 }
 
+const CELEBRATING = (
+  <>
+    <path d="M43 63 Q48 56 53 63 M67 63 Q72 56 77 63" stroke="#1F2A44" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+    <path d="M50 82 Q60 99 70 82 Z" fill="#1F2A44" stroke="#1F2A44" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M55 90 Q60 95 65 90 Q60 87 55 90 Z" fill="#FF6B8A" />
+    <circle cx="19" cy="46" r="8" fill="#FFF1DD" stroke="#D9C6A4" strokeWidth="1.5" />
+    <circle cx="101" cy="46" r="8" fill="#FFF1DD" stroke="#D9C6A4" strokeWidth="1.5" />
+    <path d="M12 14 Q12 22 20 22 Q12 22 12 30 Q12 22 4 22 Q12 22 12 14 Z" fill="#FFB627" />
+    <path d="M108 12 Q108 18 114 18 Q108 18 108 24 Q108 18 102 18 Q108 18 108 12 Z" fill="#FF7A3D" />
+    <circle cx="100" cy="34" r="2.5" fill="#5CC8C2" />
+    <circle cx="22" cy="6" r="2.5" fill="#A68BFF" />
+  </>
+)
+
 const FACES: Record<MascotState, ReactNode> = {
   idle: (
     <>
@@ -139,17 +154,14 @@ const FACES: Record<MascotState, ReactNode> = {
       <text x="98" y="22" fontFamily="Hanken Grotesk Variable, sans-serif" fontWeight="800" fontSize="20" fill="#7C8DB5">Z</text>
     </>
   ),
-  celebrating: (
+  celebrating: CELEBRATING,
+  dancing: CELEBRATING,
+  yawning: (
     <>
-      <path d="M43 63 Q48 56 53 63 M67 63 Q72 56 77 63" stroke="#1F2A44" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-      <path d="M50 82 Q60 99 70 82 Z" fill="#1F2A44" stroke="#1F2A44" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M55 90 Q60 95 65 90 Q60 87 55 90 Z" fill="#FF6B8A" />
-      <circle cx="19" cy="46" r="8" fill="#FFF1DD" stroke="#D9C6A4" strokeWidth="1.5" />
-      <circle cx="101" cy="46" r="8" fill="#FFF1DD" stroke="#D9C6A4" strokeWidth="1.5" />
-      <path d="M12 14 Q12 22 20 22 Q12 22 12 30 Q12 22 4 22 Q12 22 12 14 Z" fill="#FFB627" />
-      <path d="M108 12 Q108 18 114 18 Q108 18 108 24 Q108 18 102 18 Q108 18 108 12 Z" fill="#FF7A3D" />
-      <circle cx="100" cy="34" r="2.5" fill="#5CC8C2" />
-      <circle cx="22" cy="6" r="2.5" fill="#A68BFF" />
+      <path d="M42 60 Q48 64 54 60 M66 60 Q72 64 78 60" stroke="#1F2A44" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="60" cy="86" rx="7" ry="9" fill="#1F2A44" />
+      <ellipse cx="60" cy="90" rx="4.5" ry="3.5" fill="#FF6B8A" />
+      <path d="M79 66 Q82 71 79 73 Q76 71 79 66 Z" fill="#8FD3FF" />
     </>
   ),
   away: (

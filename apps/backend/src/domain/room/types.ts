@@ -65,7 +65,9 @@ export type Command =
   | { type: 'setRole'; pid: string; target: string; role: Role }
   | { type: 'transferHost'; pid: string; target: string }
   | { type: 'setSuccessor'; pid: string; target: string | null }
-  | { type: 'kick'; pid: string; target: string }
+  /** `ban` (default true) also blocks rejoining; `ban: false` just frees the seat. */
+  | { type: 'kick'; pid: string; target: string; ban?: boolean }
+  | { type: 'leave'; pid: string }
   | { type: 'approve'; pid: string; target: string }
   | { type: 'reject'; pid: string; target: string }
   | { type: 'setAccess'; pid: string; locked?: boolean; requireApproval?: boolean }
@@ -86,10 +88,11 @@ export type Command =
   | { type: 'tick' }
 
 export type DomainEvent =
-  | { type: 'joined' | 'rejoined' | 'offline' | 'renamed' | 'kicked' | 'rejected' | 'voted' | 'unvoted'; pid: string }
+  | { type: 'joined' | 'rejoined' | 'offline' | 'renamed' | 'left' | 'rejected' | 'voted' | 'unvoted'; pid: string }
+  | { type: 'kicked'; pid: string; banned: boolean }
   | { type: 'approvalRequested'; pid: string; name: string }
   | { type: 'roleChanged'; pid: string; role: Role }
-  | { type: 'hostChanged'; from: string | null; to: string | null; reason: 'manual' | 'timeout' | 'claimed' }
+  | { type: 'hostChanged'; from: string | null; to: string | null; reason: 'manual' | 'timeout' | 'claimed' | 'left' }
   | { type: 'accessChanged'; locked: boolean; requireApproval: boolean }
   | { type: 'itemsAdded'; ids: string[] }
   | { type: 'itemsChanged'; ids: string[] }

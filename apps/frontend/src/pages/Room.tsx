@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -16,6 +16,7 @@ import { CardFan } from '@/room/CardFan'
 import { ResultsPanel } from '@/room/ResultsPanel'
 import { RoomTabs } from '@/room/RoomTabs'
 import { useFxStore } from '@/fx/runtime'
+import { bombOf } from '@/fx/bomb'
 import { ReactionBar } from '@/room/fx/ReactionLayer'
 import { TopBar } from '@/room/TopBar'
 import { PendingBar } from '@/room/PendingBar'
@@ -27,7 +28,7 @@ import type { Item } from '@/domain'
 
 type Load = { state: 'loading' } | { state: 'missing' } | { state: 'error' } | { state: 'ready'; room: RoomPreview }
 
-function Notice({ title, body }: { title: string; body?: string }) {
+function Notice({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
   const { t } = useTranslation()
   return (
     <div className="flex min-h-svh flex-col">
@@ -35,7 +36,10 @@ function Notice({ title, body }: { title: string; body?: string }) {
       <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
         <h1 className="text-3xl">{title}</h1>
         {body && <p className="text-muted-foreground">{body}</p>}
-        <Button asChild><Link to="/">{t('room.backHome')}</Link></Button>
+        <div className="flex flex-wrap justify-center gap-2">
+          {action}
+          <Button asChild><Link to="/">{t('room.backHome')}</Link></Button>
+        </div>
       </main>
     </div>
   )
@@ -63,13 +67,21 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
   const pid = useRoomStore(s => s.pid)
   const lastEvents = useRoomStore(s => s.lastEvents)
   const connError = useRoomStore(s => s.connError)
+  const kickBanned = useRoomStore(s => s.kickBanned)
   const hold = useFxStore(s => s.hold)
   const [sheet, setSheet] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editing, setEditing] = useState<Item | null>(null)
   const [switchTo, setSwitchTo] = useState<string | null>(null)
 
-  if (connection === 'kicked') return <Notice title={t('room.kicked')} body={t('room.kickedNote')} />
+  if (connection === 'left') {
+    return <Notice title={t('room.left')} body={t('room.leftNote')} action={<Button variant="outline" onClick={() => window.location.reload()}>{t('room.rejoin')}</Button>} />
+  }
+  if (connection === 'kicked') {
+    return kickBanned
+      ? <Notice title={t('room.kicked')} body={t('room.kickedNote')} />
+      : <Notice title={t('room.kicked')} body={t('room.removedNote')} action={<Button variant="outline" onClick={() => window.location.reload()}>{t('room.rejoin')}</Button>} />
+  }
   if (connection === 'rejected') return <Notice title={t('room.rejected')} body={t('room.rejectedNote')} />
   if (connError) return <Notice title={t('room.connError')} body={t(`errors.${connError}`, { defaultValue: t('errors.generic') })} />
   if (connection === 'pending') return <Notice title={t('room.pendingTitle')} body={t('room.pendingNote')} />
@@ -90,6 +102,7 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
     return { low: pick(stats.min?.id), high: pick(stats.max?.id) }
   })()
   const ignore = () => {}
+  const bomb = bombOf(state)
   const openAdd = isHost ? () => setAddOpen(true) : undefined
   const openSummary = () => navigate(`/r/${slug}/summary`)
   const start = (itemId: string) => void send({ type: 'startRound', itemId }).catch(ignore)
@@ -104,7 +117,8 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
     <RoomTabs state={state} pid={pid} isHost={isHost} canVote={!!canVote} send={send} onStart={requestStart} onAdd={openAdd} onEdit={isHost ? setEditing : undefined} onSummary={openSummary} split={split} />
   )
   const results = revealed && stats && !hold && (
-    <div className="mx-3 flex-none md:mx-6">
+    // A container: the panel lays itself out by the width it actually gets (tablet columns are narrow).
+    <div className="@container mx-3 flex-none md:mx-4 xl:mx-6">
       <ResultsPanel
         key={`${cur.itemId}:${cur.number}`}
         stats={stats}
@@ -113,10 +127,11 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
         discussion={discussion}
         onFinalize={value => void send({ type: 'finalize', value }).catch(ignore)}
         onRevote={() => void send({ type: 'revote' }).catch(ignore)}
+        bomb={bomb && { steps: bomb.steps, waiting: bomb.waiting.map(nameOf) }}
       />
     </div>
   )
-  const table = <Table state={state} pid={pid} isHost={isHost} onStart={requestStart} onAdd={openAdd} onSummary={openSummary} />
+  const table = <Table state={state} pid={pid} isHost={isHost} onStart={requestStart} onAdd={openAdd} onSummary={openSummary} onReveal={reveal} />
   const fan = voting && canVote && <CardFan scale={state.scale} enabledSpecials={state.enabledSpecials} myVote={cur.myVote} send={cmd => send(cmd).catch(ignore)} />
   const observing = voting && me?.role === 'observer' && <p className="flex-none py-2 text-center text-sm text-muted-foreground">{t('room.observing')}</p>
   const mobileAction: MobileAction | null = (() => {
@@ -168,9 +183,10 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
           </Sheet>
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_340px]">
+        // Tablets (768–1279px) get a slimmer side panel so the table and results keep room.
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
           <section className="flex min-h-0 flex-col gap-2 overflow-y-auto py-3">
-            <div className="flex min-h-[320px] flex-1 items-stretch gap-3 pr-5 pl-4">
+            <div className="flex min-h-[320px] flex-1 items-stretch gap-2 pr-3 pl-3 xl:gap-3 xl:pr-5 xl:pl-4">
               <div className="flex flex-none items-center"><ReactionBar vertical /></div>
               <div className="min-w-0 flex-1">{table}</div>
             </div>
@@ -178,7 +194,7 @@ function RoomView({ slug, name, hasPassword }: { slug: string; name: string; has
             {observing}
             {results}
           </section>
-          <aside className="mt-3 mr-4 mb-4 flex min-h-0 flex-col overflow-hidden rounded-3xl bg-muted">{tabs(true)}</aside>
+          <aside className="mt-3 mr-3 mb-3 flex min-h-0 flex-col overflow-hidden rounded-3xl bg-muted xl:mr-4 xl:mb-4">{tabs(true)}</aside>
         </div>
       )}
     </div>

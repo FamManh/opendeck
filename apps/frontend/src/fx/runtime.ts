@@ -16,7 +16,10 @@ const RISE_MIN_MS = 2600
 const RISE_SPREAD_MS = 1000
 const STAGGER_MS = 120
 const AWAIT_EVENTS_MS = 400
-const CONSENSUS_MS = 2000
+const CONSENSUS_MS = 3000
+/** How long the explosion plays over the table; the smoke that follows comes from room state. */
+export const BOMB_MS = 1800
+export const YAWN_MS = 3200
 
 export interface FxHold { flipped: Set<string>; all: boolean }
 export interface Discussion { low: string[]; high: string[] }
@@ -33,7 +36,9 @@ interface FxStore {
   /** Non-null while a reveal is being choreographed: unflipped cards stay face down and results stay hidden. */
   hold: FxHold | null
   countdown: 3 | 2 | 1 | null
-  moment: 'consensus' | 'twist' | null
+  moment: 'consensus' | 'twist' | 'bomb' | null
+  /** Someone played ☕: every mascot yawns for a moment. */
+  yawn: boolean
   discussion: Discussion | null
   stamp: boolean
   roundKey: string | null
@@ -47,7 +52,7 @@ interface FxStore {
 }
 
 const initial: FxStore = {
-  hold: null, countdown: null, moment: null, discussion: null, stamp: false,
+  hold: null, countdown: null, moment: null, yawn: false, discussion: null, stamp: false,
   roundKey: null, roundStartedAt: Date.now(), floating: [], planes: [], flights: [], hits: {}, spin: null,
 }
 
@@ -115,6 +120,14 @@ function apply(step: Step, sound: boolean) {
     case 'moment':
       set({ moment: step.name })
       if (step.name === 'consensus') later(CONSENSUS_MS, () => set(s => (s.moment === 'consensus' ? { moment: null } : s)))
+      if (step.name === 'bomb') {
+        if (sound) soundBank.play('boom')
+        later(BOMB_MS, () => set(s => (s.moment === 'bomb' ? { moment: null } : s)))
+      }
+      break
+    case 'yawn':
+      set({ yawn: true })
+      later(YAWN_MS, () => set({ yawn: false }))
       break
     default:
       break
@@ -132,7 +145,7 @@ export const fxRuntime = {
     // A round nobody voted in keeps its number, so a revote can share the key with the round it replaces.
     if (key !== get().roundKey || (prev?.current?.status === 'revealed' && next.current?.status === 'voting')) {
       cancelTimeline()
-      set({ roundKey: key, roundStartedAt: Date.now(), hold: null, countdown: null, moment: null, discussion: null, spin: null })
+      set({ roundKey: key, roundStartedAt: Date.now(), hold: null, countdown: null, moment: null, yawn: false, discussion: null, spin: null })
     }
     if (prev?.current?.status === 'voting' && next.current?.status === 'revealed' && keyOf(prev) === key && !get().hold) {
       // Hold cards face down until the `events` frame (sent right after) starts the choreography; give up if it never comes.
@@ -154,7 +167,7 @@ export const fxRuntime = {
         .filter(p => cur.votes?.[p.id] !== undefined)
         .sort((a, b) => a.joinedAt - b.joinedAt)
         .map(p => p.id)
-      set({ hold: { flipped: new Set(), all: false }, countdown: null, moment: null, discussion: disc ? { low: disc.lowPids, high: disc.highPids } : null })
+      set({ hold: { flipped: new Set(), all: false }, countdown: null, moment: null, yawn: false, discussion: disc ? { low: disc.lowPids, high: disc.highPids } : null })
       sample('reveal', true)
       director.play(planReveal(level, seatOrder, cur.stats), s => apply(s, sound))
     }

@@ -76,3 +76,28 @@ test('send rejects on a failed ack and toasts the translated error', async () =>
   await expect(useRoomStore.getState().send({ type: 'reveal' })).rejects.toThrow('NOT_HOST')
   expect(toast.error).toHaveBeenCalledWith(i18n.t('errors.NOT_HOST'))
 })
+
+test('leave resolves when the server says `left`, and a later disconnect is not a reconnect', async () => {
+  sock.fire('state', publicState())
+  sock.ackWith = undefined
+  sock.emit = function (event: string, ...args: any[]) { this.emitted.push({ event, args }) }
+  const p = useRoomStore.getState().leave()
+  expect(sock.emitted.at(-1)?.args[0]).toEqual({ type: 'leave' })
+  sock.fire('left')
+  await expect(p).resolves.toBeUndefined()
+  sock.fire('disconnect', 'io server disconnect')
+  expect(useRoomStore.getState().connection).toBe('left')
+  expect(toast.error).not.toHaveBeenCalled()
+})
+
+test('leave rejects with a toast when the server refuses', async () => {
+  sock.ackWith = { ok: false, code: 'NOT_IN_ROOM' }
+  await expect(useRoomStore.getState().leave()).rejects.toThrow('NOT_IN_ROOM')
+  expect(toast.error).toHaveBeenCalled()
+})
+
+test('kicked without a ban remembers the room link still works', () => {
+  sock.fire('state', publicState())
+  sock.fire('kicked', { banned: false })
+  expect(useRoomStore.getState()).toMatchObject({ connection: 'kicked', kickBanned: false })
+})

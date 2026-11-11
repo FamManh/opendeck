@@ -54,3 +54,5 @@ const NOTO_BASE = 'https://fonts.gstatic.com/s/e/notoemoji/latest'
 /** Animated WebP (512px) and a static SVG of the same artwork. */
 export const notoAnimated = (emoji: string) => `${NOTO_BASE}/${notoCode(emoji)}/512.webp`
 export const notoStatic = (emoji: string) => `${NOTO_BASE}/${notoCode(emoji)}/emoji.svg`
+/** Vector Lottie of the same animation (only some emoji have one; callers must fall back). */
+export const notoLottie = (emoji: string) => `${NOTO_BASE}/${notoCode(emoji)}/lottie.json`

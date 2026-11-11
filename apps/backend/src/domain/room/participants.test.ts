@@ -109,3 +109,38 @@ test('rename trims and validates 1..40 chars', () => {
   expect(() => applyCommand(s, { type: 'rename', pid: 'G', name: '   ' }, T0)).toThrow('NAME_INVALID')
   expect(() => applyCommand(s, { type: 'rename', pid: 'G', name: 'x'.repeat(41) }, T0)).toThrow('NAME_INVALID')
 })
+
+describe('leave', () => {
+  const base = () => run(room(), [
+    { type: 'join', participant: user('U') }, { type: 'join', participant: guest('g') },
+    { type: 'addItems', pid: 'H', items: [{ title: 'S' }] }, { type: 'startRound', pid: 'H', itemId: 'i1' },
+    { type: 'vote', pid: 'g', cardId: '5' },
+  ]).state
+
+  test('removes the seat and its vote, without banning, so the link still works', () => {
+    const r = run(base(), [{ type: 'leave', pid: 'g' }])
+    expect(r.state.participants.g).toBeUndefined()
+    expect(r.state.current?.votes.g).toBeUndefined()
+    expect(r.state.banned).not.toContain('g')
+    expect(r.events).toContainEqual({ type: 'left', pid: 'g' })
+    expect(run(r.state, [{ type: 'join', participant: guest('g') }]).state.participants.g?.online).toBe(true)
+  })
+
+  test('host leaving hands host to the successor, else the earliest registered user online', () => {
+    const withSuccessor = run(base(), [{ type: 'join', participant: user('V') }, { type: 'setSuccessor', pid: 'H', target: 'V' }, { type: 'leave', pid: 'H' }])
+    expect(withSuccessor.state.hostId).toBe('V')
+    expect(withSuccessor.state.successorId).toBeNull()
+    const plain = run(base(), [{ type: 'leave', pid: 'H' }])
+    expect(plain.state.hostId).toBe('U')
+    expect(plain.events).toContainEqual({ type: 'hostChanged', from: 'H', to: 'U', reason: 'left' })
+  })
+
+  test('host leaving with only guests left makes the room hostless', () => {
+    const r = run(base(), [{ type: 'leave', pid: 'U' }, { type: 'leave', pid: 'H' }])
+    expect(r.state.hostId).toBeNull()
+  })
+
+  test('strangers cannot leave', () => {
+    expect(() => run(base(), [{ type: 'leave', pid: 'zz' }])).toThrow()
+  })
+})

@@ -14,7 +14,7 @@ test('kick removes seat, vote and reason; kicked id cannot rejoin', () => {
   expect(r.state.current!.votes).toEqual({})
   expect(r.state.current!.reasons).toEqual({})
   expect(r.state.banned).toEqual(['G'])
-  expect(r.events).toContainEqual({ type: 'kicked', pid: 'G' })
+  expect(r.events).toContainEqual({ type: 'kicked', pid: 'G', banned: true })
   expect(() => applyCommand(r.state, { type: 'join', participant: guest('G') }, T0)).toThrow('KICKED')
 })
 test('kick guards: non-host NOT_HOST, self INVALID_TARGET, unknown UNKNOWN_PARTICIPANT', () => {
@@ -64,4 +64,13 @@ test('owner bypasses lock and approval even on a fresh participant id', () => {
     .state
   const ownerNewTab = { id: 'H2', userId: 'user-H', name: 'H', avatar: 'cat', role: 'voter' as const }
   expect(applyCommand(s, { type: 'join', participant: ownerNewTab }, T0).state.participants.H2).toBeDefined()
+})
+
+test('kick with ban: false frees the seat but the person can come straight back', () => {
+  const s = run(room(), [{ type: 'join', participant: guest('G') }]).state
+  const r = applyCommand(s, { type: 'kick', pid: 'H', target: 'G', ban: false }, T0)
+  expect(r.state.participants.G).toBeUndefined()
+  expect(r.state.banned).not.toContain('G')
+  expect(r.events).toContainEqual({ type: 'kicked', pid: 'G', banned: false })
+  expect(applyCommand(r.state, { type: 'join', participant: guest('G') }, T0).state.participants.G).toBeDefined()
 })

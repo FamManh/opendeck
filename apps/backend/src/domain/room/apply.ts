@@ -40,7 +40,8 @@ export function applyCommand(prev: RoomState, c: Command, now: number): CommandR
     case 'setRole': P.setRole(s, c.pid, c.target, c.role, ev); break
     case 'transferHost': P.transferHost(s, c.pid, c.target, ev); break
     case 'setSuccessor': P.setSuccessor(s, c.pid, c.target); break
-    case 'kick': P.kick(s, c.pid, c.target, ev); break
+    case 'kick': P.kick(s, c.pid, c.target, c.ban !== false, ev); break
+    case 'leave': P.leave(s, c.pid, ev); break
     case 'approve': P.approve(s, c.pid, c.target, now, ev); break
     case 'reject': P.reject(s, c.pid, c.target, ev); break
     case 'setAccess': P.setAccess(s, c.pid, c, now, ev); break

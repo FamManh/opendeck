@@ -6,6 +6,7 @@ import { ReactionLayer } from './ReactionLayer'
 import { Spotlight } from './Spotlight'
 import { Stamp } from './Stamp'
 import { ThrowLayer } from './ThrowLayer'
+import { BombLayer } from './BombLayer'
 
 /** All per-device effect overlays; none of them intercept clicks except the wheel button. */
 export function FxLayers({ state, isHost }: { state: PublicRoomState; isHost: boolean }) {
@@ -18,6 +19,7 @@ export function FxLayers({ state, isHost }: { state: PublicRoomState; isHost: bo
       <ReactionLayer />
       <PaperPlaneLayer />
       <ThrowLayer />
+      <BombLayer state={state} />
     </>
   )
 }

@@ -23,6 +23,15 @@ test('observer never sleeps', () => {
 })
 test('celebrates when card is a mode during consensus moment', () => {
   const c = ctx({ status: 'revealed', voted: true, cardId: '5', stats, moment: 'consensus' })
-  expect(deriveMascotState(p(), c)).toBe('celebrating')
+  expect(deriveMascotState(p(), c)).toBe('dancing')
   expect(deriveMascotState(p(), { ...c, cardId: '8' })).toBe('voted')
+})
+
+test('consensus: the mode voters dance', () => {
+  expect(deriveMascotState(p(), ctx({ status: 'revealed', voted: true, cardId: '5', stats, moment: 'consensus' }))).toBe('dancing')
+})
+test('☕ on the table: everyone yawns after the reveal, but dancing wins', () => {
+  expect(deriveMascotState(p(), ctx({ status: 'revealed', voted: true, cardId: '8', stats, yawn: true }))).toBe('yawning')
+  expect(deriveMascotState(p(), ctx({ status: 'revealed', voted: true, cardId: '5', stats, yawn: true, moment: 'consensus' }))).toBe('dancing')
+  expect(deriveMascotState(p({ online: false }), ctx({ status: 'revealed', yawn: true }))).toBe('away')
 })

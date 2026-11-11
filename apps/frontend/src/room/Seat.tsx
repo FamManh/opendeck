@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Crown, Eye } from 'lucide-react'
 import { Mascot, isSpecies, type MascotState } from '@/components/game/Mascot'
+import { LottieEmoji } from '@/components/game/LottieEmoji'
 import { NotoEmoji } from '@/components/game/NotoEmoji'
 import type { Hit } from '@/fx/runtime'
 import { hitJitter, type ItemKind } from '@/fx/throws'
@@ -35,6 +36,32 @@ export interface SeatProps {
   throwBlocked?: boolean
   /** Things currently stuck on this seat, oldest first (each cleared after HIT_MS). */
   hits?: Hit[] | undefined
+  /** Bomb: this person must explain their card; smoke hides them until they do. */
+  smoke?: boolean
+  /** Minimal effects: no motion in overlays. */
+  still?: boolean
+  /** Stagger for contagious yawning, ms. */
+  yawnDelay?: number
+}
+
+/** A few grey puffs that drift over the avatar (and part of the name). */
+function Smoke() {
+  const puffs = [
+    { x: 30, y: 34, r: 52, d: 0, px: '5%' }, { x: 66, y: 30, r: 56, d: 500, px: '-4%' }, { x: 48, y: 56, r: 62, d: 900, px: '3%' },
+    { x: 20, y: 66, r: 44, d: 1300, px: '-5%' }, { x: 80, y: 62, r: 46, d: 700, px: '4%' }, { x: 50, y: 18, r: 40, d: 1600, px: '-3%' },
+    { x: 46, y: 80, r: 42, d: 300, px: '4%' },
+  ]
+  return (
+    <span data-slot="smoke" aria-hidden className="animate-pp-smoke-in pointer-events-none absolute inset-[-38%] z-20 block">
+      {puffs.map((p, i) => (
+        <span
+          key={i}
+          className="animate-pp-puff absolute rounded-full bg-[radial-gradient(circle_at_45%_40%,rgba(232,235,241,.97)_0%,rgba(176,182,196,.9)_42%,rgba(150,157,172,0)_70%)]"
+          style={{ left: `${p.x - p.r / 2}%`, top: `${p.y - p.r / 2}%`, width: `${p.r}%`, height: `${p.r}%`, animationDelay: `${p.d}ms`, ['--px' as string]: p.px }}
+        />
+      ))}
+    </span>
+  )
 }
 
 const HIT_ANIM: Record<ItemKind, string> = {
@@ -100,7 +127,7 @@ export function seatStatus(p: Participant, voted: boolean, revealed: boolean, ha
   return revealed ? 'novote' : 'thinking'
 }
 
-export function Seat({ participant: p, voted, vote, revealed, hasRound = true, isHost, isMe, mascot, spot, density = 'normal', cardOffset, onThrow, onThrowItem, throwBlocked = false, hits = [] }: SeatProps) {
+export function Seat({ participant: p, voted, vote, revealed, hasRound = true, isHost, isMe, mascot, spot, density = 'normal', cardOffset, onThrow, onThrowItem, throwBlocked = false, hits = [], smoke = false, still = false, yawnDelay = 0 }: SeatProps) {
   const hit = hits.at(-1)
   const { t } = useTranslation()
   const status = seatStatus(p, voted, revealed, hasRound)
@@ -120,7 +147,8 @@ export function Seat({ participant: p, voted, vote, revealed, hasRound = true, i
       data-spot={spot}
       data-density={density}
       title={p.name}
-      style={{ width: size.w, height: size.h }}
+      data-smoke={smoke || undefined}
+      style={{ width: size.w, height: size.h, ['--yawn-delay' as string]: `${yawnDelay}ms` }}
       className={`relative flex flex-col items-center gap-0.5 transition-opacity duration-300 ${status === 'offline' ? 'opacity-45' : ''}`}
     >
       {wrapAvatar(
@@ -134,6 +162,12 @@ export function Seat({ participant: p, voted, vote, revealed, hasRound = true, i
           <Mascot species={isSpecies(p.avatar) ? p.avatar : 'cat'} state={mascot ?? MASCOT[status]} />
         </div>
         {hits.map((h, i) => <HitOverlay key={`h${h.id}`} hit={h} index={i} />)}
+        {mascot === 'yawning' && vote === 'coffee' && (
+          <span data-slot="coffee" aria-hidden className="pointer-events-none absolute -right-3 -bottom-2 z-10 size-[55%]">
+            {still ? <NotoEmoji emoji="☕" className="size-full" /> : <LottieEmoji emoji="☕" loop className="size-full" />}
+          </span>
+        )}
+        {smoke && <Smoke />}
         {isHost && <Crown aria-label={t('room.host')} className="absolute -top-1 -right-1 size-5 rounded-full bg-primary p-1 text-primary-foreground" />}
         {p.role === 'observer' && <Eye aria-label={t('room.status.observer')} className="absolute -right-1 -bottom-1 size-5 rounded-full bg-muted p-1" />}
         {showCard && !cardOffset && <div className="absolute -right-3 -bottom-1 z-10 h-[34px] w-6">{card}</div>}
@@ -146,8 +180,8 @@ export function Seat({ participant: p, voted, vote, revealed, hasRound = true, i
         {isMe && dense ? t('room.you') : p.name}{isMe && !dense ? ` · ${t('room.you')}` : ''}
       </div>
       {dense
-        ? <><span aria-hidden className={`absolute top-0 left-0 size-2 rounded-full ${DOT[status]}`} /><span className="sr-only">{t(`room.status.${status}`)}</span></>
-        : <div className="rounded-full bg-muted px-2 text-[11px] leading-tight font-semibold text-muted-foreground">{t(`room.status.${status}`)}</div>}
+        ? <><span aria-hidden className={`absolute top-0 left-0 size-2 rounded-full ${DOT[status]}`} /><span className="sr-only">{(smoke ? t('fx.bomb.smoke') : t(`room.status.${status}`))}</span></>
+        : <div className="rounded-full bg-muted px-2 text-[11px] leading-tight font-semibold text-muted-foreground">{(smoke ? t('fx.bomb.smoke') : t(`room.status.${status}`))}</div>}
       {onThrow && <button type="button" onClick={onThrow} aria-label={t('fx.throwPlane')} className="absolute top-0 left-0 size-8 rounded-full bg-muted text-sm">✈️</button>}
     </div>
   )

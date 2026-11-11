@@ -90,19 +90,47 @@ export function setSuccessor(s: RoomState, pid: string, target: string | null): 
   s.successorId = target
 }
 
-export function kick(s: RoomState, pid: string, target: string, ev: Ev): void {
+/** Drops a seat and everything tied to it in the current round. */
+function removeSeat(s: RoomState, pid: string): void {
+  delete s.participants[pid]
+  delete s.pending[pid]
+  if (s.current) {
+    delete s.current.votes[pid]
+    delete s.current.reasons[pid]
+  }
+  if (s.successorId === pid) s.successorId = null
+}
+
+/** Successor if online and registered, else the earliest-joined online registered user, else nobody. */
+function nextHost(s: RoomState, except: string): Participant | undefined {
+  const eligible = (p: Participant | undefined): p is Participant => !!p && p.online && p.userId !== null && p.id !== except
+  const successor = s.successorId === null ? undefined : s.participants[s.successorId]
+  return eligible(successor)
+    ? successor
+    : Object.values(s.participants).filter(eligible).sort((a, b) => a.joinedAt - b.joinedAt)[0]
+}
+
+export function kick(s: RoomState, pid: string, target: string, ban: boolean, ev: Ev): void {
   requireHost(s, pid)
   if (target === pid) throw new DomainError('INVALID_TARGET')
   if (!s.participants[target] && !s.pending[target]) throw new DomainError('UNKNOWN_PARTICIPANT')
-  delete s.participants[target]
-  delete s.pending[target]
-  if (s.current) {
-    delete s.current.votes[target]
-    delete s.current.reasons[target]
-  }
-  if (s.successorId === target) s.successorId = null
-  if (!s.banned.includes(target)) s.banned.push(target)
-  ev.push({ type: 'kicked', pid: target })
+  removeSeat(s, target)
+  if (ban && !s.banned.includes(target)) s.banned.push(target)
+  ev.push({ type: 'kicked', pid: target, banned: ban })
+}
+
+/** Leaving on your own: the seat goes away but you are not banned, so the room link still works. */
+export function leave(s: RoomState, pid: string, ev: Ev): void {
+  requireParticipant(s, pid)
+  const wasHost = s.hostId === pid
+  const next = wasHost ? nextHost(s, pid) : undefined
+  removeSeat(s, pid)
+  ev.push({ type: 'left', pid })
+  if (!wasHost) return
+  // Nobody eligible: the room stays hostless until a registered user joins (claimHostIfHostless).
+  s.hostId = next?.id ?? null
+  if (s.successorId === s.hostId) s.successorId = null
+  ev.push({ type: 'hostChanged', from: pid, to: s.hostId, reason: 'left' })
 }
 
 export function approve(s: RoomState, pid: string, target: string, now: number, ev: Ev): void {
@@ -136,11 +164,7 @@ export function checkHostTimeout(s: RoomState, now: number, ev: Ev): void {
   if (from === null) return
   const host = s.participants[from]
   if (host && (host.online || host.offlineSince === null || now - host.offlineSince <= HOST_OFFLINE_MS)) return
-  const eligible = (p: Participant | undefined): p is Participant => !!p && p.online && p.userId !== null && p.id !== from
-  const successor = s.successorId === null ? undefined : s.participants[s.successorId]
-  const next = eligible(successor)
-    ? successor
-    : Object.values(s.participants).filter(eligible).sort((a, b) => a.joinedAt - b.joinedAt)[0]
+  const next = nextHost(s, from)
   s.hostId = next?.id ?? null
   if (s.successorId === s.hostId) s.successorId = null
   ev.push({ type: 'hostChanged', from, to: s.hostId, reason: 'timeout' })

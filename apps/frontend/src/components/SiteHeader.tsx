@@ -8,14 +8,15 @@ import { Mascot, isSpecies } from '@/components/game/Mascot'
 import { LANGUAGES, isLanguage, setLanguage } from '@/i18n'
 import { logout, useMe } from '@/lib/useMe'
 
-export function Logo({ className = '' }: { className?: string }) {
+/** `wordmark` hides the "Planning Poker" text below a breakpoint (default: phones only). */
+export function Logo({ className = '', wordmark = 'max-sm:sr-only' }: { className?: string; wordmark?: string }) {
   return (
     <Link to="/" className={`flex items-center gap-2.5 ${className}`}>
       <span className="relative size-[30px]" aria-hidden="true">
         <span className="absolute top-1 left-0.5 h-6 w-[17px] -rotate-12 rounded-[5px] bg-stamp" />
         <span className="absolute top-0.5 left-[11px] h-6 w-[17px] rotate-[9deg] rounded-[5px] border-2 border-muted bg-primary" />
       </span>
-      <span className="text-[17px] font-[650] max-sm:sr-only">Planning Poker</span>
+      <span className={`text-[17px] font-[650] ${wordmark}`}>Planning Poker</span>
     </Link>
   )
 }

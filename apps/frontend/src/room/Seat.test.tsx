@@ -73,3 +73,15 @@ test('several hits stack on one seat, each in its own spot', () => {
   expect(new Set(hits.map(h => h.style.transform)).size).toBe(3)
   expect(container.querySelectorAll('[data-slot=stuck-arrow]')).toHaveLength(2)
 })
+
+test('bomb smoke covers the seat and says they must explain', () => {
+  const { container } = render(<Seat participant={p()} voted vote="13" revealed smoke />)
+  expect(container.querySelector('[data-slot=smoke]')).not.toBeNull()
+  expect(screen.getByText('Chờ giải thích')).toBeInTheDocument()
+})
+
+test('a yawning ☕ voter holds a steaming cup', () => {
+  const { container } = render(<Seat participant={p()} voted vote="coffee" revealed mascot="yawning" still />)
+  expect(container.querySelector('[data-slot=coffee]')).not.toBeNull()
+  expect(container.querySelector('[data-state=yawning]')).not.toBeNull()
+})

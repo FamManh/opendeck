@@ -1,4 +1,5 @@
 import type { RoundStats } from '@/domain'
+import { BOMB_STEPS, COFFEE } from './bomb'
 import type { FxLevel } from './prefs'
 
 export type Step =
@@ -8,7 +9,8 @@ export type Step =
   | { at: number; kind: 'results' }
   | { at: number; kind: 'stamp' }
   | { at: number; kind: 'slideDone'; itemId: string }
-  | { at: number; kind: 'moment'; name: 'consensus' | 'twist' }
+  | { at: number; kind: 'moment'; name: 'consensus' | 'twist' | 'bomb' }
+  | { at: number; kind: 'yawn' }
 
 export const COUNT_STEP_MS = 500
 export const FIRST_FLIP_MS = 1500
@@ -22,7 +24,10 @@ function moments(at: number, stats: RoundStats): Step[] {
   const out: Step[] = []
   const numericVotes = stats.distribution.reduce((n, d) => (d.card.special ? n : n + d.count), 0)
   if (stats.consensusLevel === 'absolute' && numericVotes >= 2) out.push({ at, kind: 'moment', name: 'consensus' })
-  if (stats.needsDiscussion) out.push({ at, kind: 'moment', name: 'twist' })
+  // A big enough gap escalates the plot twist into the bomb (smoke + mandatory explanations).
+  if (stats.spreadSteps >= BOMB_STEPS) out.push({ at, kind: 'moment', name: 'bomb' })
+  else if (stats.needsDiscussion) out.push({ at, kind: 'moment', name: 'twist' })
+  if (stats.distribution.some(d => d.card.id === COFFEE)) out.push({ at, kind: 'yawn' })
   return out
 }
 

@@ -48,3 +48,18 @@ test('host picks a card and locks; non-host sees no controls', async () => {
   expect(screen.queryByRole('button', { name: 'Chốt điểm' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Bỏ phiếu lại' })).toBeNull()
 })
+
+test('bomb: the host cannot lock the score until everyone explained, unless they skip', async () => {
+  const user = userEvent.setup()
+  const onFinalize = vi.fn()
+  const stats = computeRoundStats(fib, ['1', '13'])
+  const { rerender } = render(<ResultsPanel stats={stats} scale={fib} isHost onFinalize={onFinalize} onRevote={noop} bomb={{ steps: 5, waiting: ['An'] }} />)
+  expect(screen.getByText(/Chờ An giải thích/)).toBeInTheDocument()
+  const lock = screen.getByRole('button', { name: 'Chốt điểm' })
+  expect(lock).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: /Bỏ qua/ }))
+  expect(lock).toBeEnabled()
+  rerender(<ResultsPanel stats={stats} scale={fib} isHost onFinalize={onFinalize} onRevote={noop} bomb={{ steps: 5, waiting: [] }} />)
+  expect(screen.getByText(/Mọi người đã giải thích/)).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /Bỏ qua/ })).toBeNull()
+})

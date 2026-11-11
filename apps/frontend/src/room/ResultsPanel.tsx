@@ -14,6 +14,8 @@ export interface ResultsPanelProps {
   discussion?: { low: string[]; high: string[] } | null
   onFinalize: (value: string) => void
   onRevote: () => void
+  /** Bomb mode: names still owing an explanation; locking the score waits for them (the host may skip). */
+  bomb?: { steps: number; waiting: string[] } | null
 }
 
 const DOTS: Record<ConsensusLevel, number> = { absolute: 4, high: 3, medium: 2, low: 1, unknown: 0 }
@@ -23,16 +25,19 @@ function cardLabel(t: (k: string) => string, id: string, label: string) {
   return isSpecialId(id) ? t(`cards.special.${id}`) : label
 }
 
-export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onRevote }: ResultsPanelProps) {
+export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onRevote, bomb = null }: ResultsPanelProps) {
   const { t } = useTranslation()
   const [picked, setPicked] = useState<string | null>(null)
   const [custom, setCustom] = useState('')
+  const [skipBomb, setSkipBomb] = useState(false)
+  const blocked = !!bomb && bomb.waiting.length > 0 && !skipBomb
   const value = custom.trim() || picked || stats.nearestCard?.id || stats.modes[0]?.id || ''
   const maxCount = Math.max(1, ...stats.distribution.map(d => d.count))
   const ordinal = scale.kind !== 'numeric'
 
   return (
-    <div data-slot="results" className="flex flex-col gap-3 rounded-3xl bg-muted p-3 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-6 md:px-5">
+    // Phone: one column. Tablet / narrow column: stats on top, host controls full width below. Wide (@4xl ≈ 896px): three columns.
+    <div data-slot="results" className="flex flex-col gap-3 rounded-3xl bg-muted p-3 md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-x-6 md:gap-y-3 md:px-5 @4xl:grid-cols-[auto_minmax(0,1fr)_auto] @4xl:gap-6">
       <div className="flex items-center gap-4">
         <div className="flex flex-col">
           {ordinal ? (
@@ -62,15 +67,22 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
 
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2.5">
-          <span data-slot="consensus" className="rounded-full bg-background px-3 py-1 text-[13px] font-semibold">
+          <span data-slot="consensus" className="rounded-full bg-background px-3 py-1 text-[13px] font-semibold whitespace-nowrap">
             {t('results.consensus', { level: t(`results.level.${stats.consensusLevel}`) })}
           </span>
           <span className="flex gap-1" aria-hidden="true">
             {[0, 1, 2, 3].map(i => <span key={i} className={`size-2.5 rounded-full ${i < DOTS[stats.consensusLevel] ? 'bg-primary' : 'bg-border'}`} />)}
           </span>
-          <span className="text-[13px] text-muted-foreground">{t('results.votes', { count: stats.total })}</span>
+          <span className="text-[13px] whitespace-nowrap text-muted-foreground">{t('results.votes', { count: stats.total })}</span>
         </div>
-        {stats.needsDiscussion && discussion && (
+        {bomb && (
+          <div data-slot="bomb" role="status" className="rounded-xl bg-stamp/20 px-3 py-2 text-sm font-semibold">
+            {bomb.waiting.length
+              ? t('results.bombWaiting', { steps: bomb.steps, names: bomb.waiting.join(', ') })
+              : t('results.bombDone', { steps: bomb.steps })}
+          </div>
+        )}
+        {!bomb && stats.needsDiscussion && discussion && (
           <div data-slot="discussion" role="status" className="rounded-xl bg-warn/20 px-3 py-2 text-sm font-semibold">
             {t('results.discussion', { low: discussion.low.join(', '), high: discussion.high.join(', ') })}
           </div>
@@ -87,7 +99,7 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
       </div>
 
       {isHost && (
-        <div className="flex flex-col gap-2 md:w-[400px]">
+        <div data-slot="finalize" className="flex min-w-0 flex-col gap-2 md:col-span-2 @4xl:col-span-1 @4xl:w-[400px]">
           <div className="text-[13px] font-semibold text-muted-foreground">{t('results.finalHint')}</div>
           <div className={`flex gap-1 ${scale.cards.length > 8 ? 'flex-wrap' : ''}`}>
             {scale.cards.map(c => (
@@ -105,8 +117,13 @@ export function ResultsPanel({ stats, scale, isHost, discussion, onFinalize, onR
           <div className="flex gap-2 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-20 max-md:items-center max-md:py-2.5 max-md:pr-3 max-md:pl-[92px]">
             <Input className="w-28 flex-none max-md:hidden" value={custom} onChange={e => setCustom(e.target.value)} placeholder={t('results.customValue')} aria-label={t('results.customValue')} maxLength={20} />
             <Button variant="outline" className="flex-1" onClick={onRevote}><RotateCcw />{t('results.revote')}</Button>
-            <Button className="flex-[1.2]" disabled={!value} onClick={() => onFinalize(value)}>{t('results.finalize')}</Button>
+            <Button className="flex-[1.2]" disabled={!value || blocked} title={blocked ? t('results.bombLocked') : undefined} onClick={() => onFinalize(value)}>{t('results.finalize')}</Button>
           </div>
+          {blocked && (
+            <button type="button" data-slot="bomb-skip" onClick={() => setSkipBomb(true)} className="self-end text-xs font-semibold text-muted-foreground underline underline-offset-2 hover:text-foreground">
+              {t('results.bombSkip')}
+            </button>
+          )}
         </div>
       )}
     </div>

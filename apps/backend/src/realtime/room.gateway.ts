@@ -15,7 +15,7 @@ export type CmdAck = { ok: true } | { ok: false; code: string }
 
 /** Lệnh client được phép gửi; join/disconnect/tick do server tự phát. */
 const CLIENT_CMDS = new Set<Command['type']>([
-  'rename', 'setRole', 'transferHost', 'setSuccessor', 'kick', 'approve', 'reject', 'setAccess',
+  'rename', 'setRole', 'transferHost', 'setSuccessor', 'kick', 'leave', 'approve', 'reject', 'setAccess',
   'addItems', 'startRound', 'vote', 'reveal', 'revote', 'reason', 'finalize',
   'setRevealRule', 'editItem', 'deleteItem', 'startSession', 'ask', 'answerQuestion', 'addNote',
 ])
@@ -174,9 +174,11 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   private deliver(socket: Socket, d: Data, state: RoomState, events: DomainEvent[], shared: DomainEvent[], view: (pid: string) => unknown): void {
-    const own = events.find(e => (e.type === 'kicked' || e.type === 'rejected') && e.pid === d.pid)
+    // Kicked, rejected or left: tell every tab of that person, then drop the socket.
+    const own = events.find(e => (e.type === 'kicked' || e.type === 'left' || e.type === 'rejected') && e.pid === d.pid)
     if (own) {
-      socket.emit(own.type)
+      if (own.type === 'kicked') socket.emit('kicked', { banned: own.banned })
+      else socket.emit(own.type)
       socket.disconnect(true)
       return
     }

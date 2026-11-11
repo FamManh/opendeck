@@ -8,7 +8,7 @@ import { createRoomSocket, type RoomSocket, type SocketFactory } from '@/realtim
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 export type ClientCommand = DistributiveOmit<Exclude<Command, { type: 'join' | 'disconnect' | 'tick' }>, 'pid'>
-export type Connection = 'connecting' | 'online' | 'reconnecting' | 'pending' | 'kicked' | 'rejected'
+export type Connection = 'connecting' | 'online' | 'reconnecting' | 'pending' | 'kicked' | 'rejected' | 'left'
 export interface ApprovalRequest { pid: string; name: string; avatar: string }
 
 const ACK_TIMEOUT_MS = 8000
@@ -20,6 +20,8 @@ interface RoomStore {
   connError: string | null
   /** Events of the most recent command (for Plan 2 effects). Replaced on every `events` frame. */
   lastEvents: DomainEvent[]
+  /** When kicked: true if the host also banned us (the room link won't work again). */
+  kickBanned: boolean
   /** Live join requests pushed to the host; `state.pending` is the authoritative list. */
   approvalRequests: ApprovalRequest[]
   setPid: (pid: string | null) => void
@@ -28,12 +30,16 @@ interface RoomStore {
   send: (cmd: ClientCommand) => Promise<void>
   /** Ephemeral fx channel (reactions, thrown items, wheel); never touches room state. */
   sendFx: (event: 'fx:react' | 'fx:throw' | 'fx:spin', payload?: object) => Promise<void>
+  /** Leave the room for good (not banned; the link still works). Resolves once the server confirms with `left`. */
+  leave: () => Promise<void>
 }
 
-const initial = { state: null, connection: 'connecting' as Connection, connError: null, lastEvents: [], approvalRequests: [] }
+const initial = { state: null, connection: 'connecting' as Connection, connError: null, lastEvents: [], approvalRequests: [], kickBanned: true }
 
 let socket: RoomSocket | null = null
 let stopFx: (() => void) | null = null
+/** Settles a pending leave() when the server's `left` arrives. */
+let onLeft: (() => void) | null = null
 
 export function errorToastMessage(code: string): string {
   const msg = i18n.t(`errors.${code}`, { defaultValue: '' })
@@ -68,15 +74,16 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     s.on('fx:thrown', (p: { from: string; target: string; kind: ThrowKind }) => { if (socket === s) fxRuntime.addThrow(p) })
     s.on('fx:spun', (p: { chosen: 'low' | 'high'; pid: string; turns: number }) => { if (socket === s) fxRuntime.setSpin(p) })
     s.on('approval:pending', live(() => set({ connection: 'pending' })))
-    s.on('kicked', live(() => set({ connection: 'kicked' })))
+    s.on('kicked', (p?: { banned?: boolean }) => { if (socket === s) set({ connection: 'kicked', kickBanned: p?.banned !== false }) })
+    s.on('left', live(() => { set({ connection: 'left' }); onLeft?.() }))
     s.on('rejected', live(() => set({ connection: 'rejected' })))
-    s.on('conn:error', (e: { code: string }) => { if (socket === s) set({ connError: e.code, connection: e.code === 'banned' ? 'kicked' : get().connection }) })
+    s.on('conn:error', (e: { code: string }) => { if (socket === s) set({ connError: e.code, connection: e.code === 'banned' ? 'kicked' : get().connection, kickBanned: e.code === 'banned' ? true : get().kickBanned }) })
     s.on('approval:request', (r: ApprovalRequest) => {
       if (socket === s) set(st => ({ approvalRequests: [...st.approvalRequests.filter(x => x.pid !== r.pid), r] }))
     })
     const lost = live(() => {
       const { connection, connError } = get()
-      if (connection === 'kicked' || connection === 'rejected' || connError) return
+      if (connection === 'kicked' || connection === 'rejected' || connection === 'left' || connError) return
       if (get().state || connection === 'online') set({ connection: 'reconnecting' })
     })
     s.on('disconnect', (reason: string) => { if (reason !== 'io client disconnect') lost() })
@@ -100,6 +107,21 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
         if (ack.code !== 'RATE_LIMITED') toast.error(errorToastMessage(ack.code))
         reject(new Error(ack.code))
       })
+    }),
+  // The server drops the socket right after `left`, so its ack never arrives on success: wait for the event instead.
+  leave: () =>
+    new Promise<void>((resolve, reject) => {
+      const s = socket
+      if (!s) { reject(new Error('NOT_READY')); return }
+      const fail = (code: string) => {
+        clearTimeout(timer)
+        onLeft = null
+        toast.error(errorToastMessage(code))
+        reject(new Error(code))
+      }
+      const timer = setTimeout(() => fail('TIMEOUT'), ACK_TIMEOUT_MS)
+      onLeft = () => { clearTimeout(timer); onLeft = null; resolve() }
+      s.emit('cmd', { type: 'leave' }, (ack: { ok: true } | { ok: false; code: string }) => { if (!ack.ok) fail(ack.code) })
     }),
   send: cmd =>
     new Promise<void>((resolve, reject) => {

@@ -5,6 +5,8 @@
 @import "./fx/fx.css";
 
 @custom-variant dark (&:is(.dark *));
+/* Tablet/desktop with little height (iPad landscape, small laptops): overlays on the table shrink. */
+@custom-variant short (@media (min-width: 768px) and (max-height: 900px));
 
 @theme inline {
     --color-felt: var(--felt);

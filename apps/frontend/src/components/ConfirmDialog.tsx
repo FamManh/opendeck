@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -9,9 +10,11 @@ export interface ConfirmDialogProps {
   confirmLabel: string
   onConfirm: () => void
   onCancel: () => void
+  /** Extra controls between the text and the buttons (e.g. an option checkbox). */
+  children?: ReactNode
 }
 
-export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel }: ConfirmDialogProps) {
+export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCancel, children }: ConfirmDialogProps) {
   const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) onCancel() }}>
@@ -20,6 +23,7 @@ export function ConfirmDialog({ open, title, body, confirmLabel, onConfirm, onCa
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{body}</DialogDescription>
         </DialogHeader>
+        {children}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onCancel}>{t('common.cancel')}</Button>
           <Button onClick={onConfirm}>{confirmLabel}</Button>

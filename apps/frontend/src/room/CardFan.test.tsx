@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PRESET_SCALES, deckOf } from '@/domain'
-import { CardFan, fanStep, isDrop } from './CardFan'
+import { CardFan, fanStep, isDrop, MIN_FAN_STEP } from './CardFan'
 
 const base = { scale: PRESET_SCALES.fibonacci, enabledSpecials: ['coffee', 'bug'] as ('coffee' | 'bug')[], myVote: null }
 
@@ -46,4 +46,9 @@ test('only a long enough upward drag plays the card', () => {
   expect(isDrop(-60)).toBe(true)
   expect(isDrop(-59)).toBe(false)
   expect(isDrop(40)).toBe(false)
+})
+
+test('a portrait-tablet column is too narrow for a readable fan of 14 cards; a desktop column is not', () => {
+  expect(fanStep(14, 468)).toBeLessThan(MIN_FAN_STEP)
+  expect(fanStep(14, 900)).toBeGreaterThanOrEqual(MIN_FAN_STEP)
 })

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Copy, RotateCw, Timer } from 'lucide-react'
+import { Copy, Timer } from 'lucide-react'
 import { Logo } from '@/components/SiteHeader'
 import { Button } from '@/components/ui/button'
 import { FxSettingsSheet } from './fx/FxSettingsSheet'
@@ -70,7 +70,8 @@ export function TopBar({ name, slug, hasPassword, state, me, isHost, send }: Top
   }
   return (
     <header className="mx-4 mt-3 flex min-h-[60px] flex-none flex-wrap items-center gap-2 rounded-full bg-muted py-2 pr-2 pl-5">
-      <Logo className="flex-none" />
+      {/* Portrait tablets: the room name matters more than the wordmark. */}
+      <Logo className="flex-none" wordmark="max-lg:sr-only" />
       <div className="ml-2 min-w-0 flex-1">
         <h1 className="truncate text-sm font-semibold">{name}</h1>
         <div className="truncate text-xs text-muted-foreground">{t('room.peopleCount', { players: people.length - observers, observers })}</div>
@@ -79,9 +80,6 @@ export function TopBar({ name, slug, hasPassword, state, me, isHost, send }: Top
       {timer}
       {cur?.status === 'voting' && <span data-slot="voted-count" className="flex h-10 flex-none items-center rounded-full bg-background px-3 text-sm font-semibold tabular-nums">{t('room.votedCount', { voted: cur.voted.length, total: voters.length })}</span>}
       {menus}
-      {isHost && cur?.status === 'voting' && (
-        <Button className="h-10 rounded-full" disabled={cur.voted.length === 0} onClick={() => void send({ type: 'reveal' }).catch(() => {})}><RotateCw />{t('room.reveal')}</Button>
-      )}
     </header>
   )
 }
