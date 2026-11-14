@@ -3,7 +3,17 @@
     "title": "Planning Poker",
     "language": "Ngôn ngữ",
     "themeLight": "Chuyển sang giao diện sáng",
-    "themeDark": "Chuyển sang giao diện tối"
+    "themeDark": "Chuyển sang giao diện tối",
+    "pageTitle": {
+      "home": "Ước lượng task cùng cả team",
+      "login": "Đăng nhập",
+      "register": "Đăng ký",
+      "forgot": "Quên mật khẩu",
+      "reset": "Đặt lại mật khẩu",
+      "createRoom": "Tạo phòng mới",
+      "room": "Phòng vote",
+      "summary": "Tổng kết phòng"
+    }
   },
   "scales": {
     "fibonacci": "Fibonacci",

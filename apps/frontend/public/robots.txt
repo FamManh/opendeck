@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /r/
+Disallow: /rooms/
+Disallow: /reset
+Disallow: /forgot
+Disallow: /api/
+
+Sitemap: https://deck.viconsol.net/sitemap.xml

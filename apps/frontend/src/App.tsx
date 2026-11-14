@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { RouteMeta } from '@/components/RouteMeta'
 import { CreateRoomPage } from '@/pages/CreateRoom'
 import { ForgotPage } from '@/pages/Forgot'
 import { HomePage } from '@/pages/Home'
@@ -11,6 +12,7 @@ import { SummaryPage } from '@/pages/Summary'
 export function App() {
   return (
     <BrowserRouter>
+      <RouteMeta />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />

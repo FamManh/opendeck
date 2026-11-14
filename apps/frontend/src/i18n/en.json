@@ -3,7 +3,17 @@
     "title": "Planning Poker",
     "language": "Language",
     "themeLight": "Switch to light theme",
-    "themeDark": "Switch to dark theme"
+    "themeDark": "Switch to dark theme",
+    "pageTitle": {
+      "home": "Estimate tasks with your team",
+      "login": "Sign in",
+      "register": "Sign up",
+      "forgot": "Forgot password",
+      "reset": "Reset password",
+      "createRoom": "New room",
+      "room": "Voting room",
+      "summary": "Room summary"
+    }
   },
   "scales": {
     "fibonacci": "Fibonacci",
